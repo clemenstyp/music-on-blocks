@@ -23,13 +23,19 @@ And edit /etc/modprobe.d/raspi-blacklist.conf and add # (comment) on line "black
 it should look like this one: #blacklist spi-bcm2708
 
 After a reboot Raspberry PI (sudo shutdown -r now) you can re-check SPI Interface software by calling: 
-$ dmesg | grep spi
-[    5.408904] bcm2708_spi 20204000.spi: master is unqueued, this is deprecated
-[    5.659213] bcm2708_spi 20204000.spi: SPI Controller at 0x20204000 (irq 80)
+`$ dmesg | grep spi`
+`[    5.408904] bcm2708_spi 20204000.spi: master is unqueued, this is deprecated`
+`[    5.659213] bcm2708_spi 20204000.spi: SPI Controller at 0x20204000 (irq 80)`
 
-$ lsmod
-spi_bcm2708             6010  0
+`$ lsmod`
+`spi_bcm2708             6010  0`
 
+
+download the source:
+`git clone https://github.com/clemenstyp/music-on-blocks.git`
+
+change into the application folder
+`cd music-on-blocks`
 
 The Aplication depends on several external libraries. The easiest way to install everything is by running the following command:
 
@@ -39,6 +45,8 @@ Once all dependanices have been installed, rename `settings.py.example` to `sett
 
 ## Basic Usage
 Run `python startBlocks.py` to start the application. Then open up a web browser and visit [http://raspberryPi:8080](http://raspberryPi:8080).
+
+you can also use the startScript.sh
 
 ## License
 
