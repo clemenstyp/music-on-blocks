@@ -1,3 +1,17 @@
-SPEAKER_IP = '192.168.1.80'
-ROVI_API_KEY = 'XXXXXXXXXXXXXXXXXXXXXXXX'
-ROVI_SHARED_SECRET = 'XXXXXXXXXX'
+SONOS_IP = '192.168.50.117'  #main sonos ip
+#SONOS_IP = 'demo' # damit er sich nicht mit dem Sonos verbindet
+NFC_READER = "MFRC522"  #  MFRC522 ist der Reader von Clemens
+#NFC_READER = "pn532"  #   pn532 ist der Reader von Johannes
+
+# Constants
+DAY_VOL = 100  # max daytime volume, 100 means no volume change
+NIGHT_VOL = 100  # max nighttime volume
+DAYTIME_RANGE = [7, 17]  # daytime is 7:00a to 5:59p
+UNJOIN = False  #True oder False
+RPI_DEMO = True # bei True verbindet ist er nicht auf einem rPi (test auf PC)
+RESTART_TIME = 30 # restartTime in Seconds
+
+DATABASE_NAME = 'songs.db'
+SECRET_KEY='SECRET_KEY' #The SECRET_KEY is needed to keep the client-side sessions secure. Choose that key wisely and as hard to guess and complex as possible.
+USERNAME='admin'
+PASSWORD='admin'

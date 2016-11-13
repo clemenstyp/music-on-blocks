@@ -1,6 +1,7 @@
 #settings file
 settings.py
 old_Data/
+songs.db
 .idea/
 
 

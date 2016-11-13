@@ -1,0 +1,46 @@
+{% extends "layout.html" %}
+{% block body %}
+  {% if session.logged_in %}
+    <form action="{{ url_for('add_entry') }}" method=post class=add-entry>
+      <dl>
+        <dt>Title *:
+        <dd><input type=text size=30 name=title>
+        <dt>Comment *:
+        <dd><textarea name=comment rows=5 cols=40></textarea>
+        <dt>tag_id *:
+        <dd><input type=text size=30 name=tag_id>
+        <dt>time_offset:
+        <dd><input type=text size=30 name=time_offset>
+        <dt>volume:
+        <dd><input type=text size=30 name=volume>
+        <dt>item *:
+        <dd><input type=text size=30 name=item>
+        <dt>type *:
+        <dd><input type=text size=30 name=type>
+        <dd><input type=submit value='Add Item'>
+      </dl>
+    </form>
+  {% endif %}
+  <ul class=entries>
+  {% for entry in entries %}
+    <li><h2>{{ entry.title }}</h2>
+      Comment: {{ entry.comment }} <br>
+      tag_id: {{ entry.tag_id }} <br>
+      time_offset: {{ entry.time_offset }} <br>
+      volume: {{ entry.volume }} <br>
+      item: {{ entry.item }} <br>
+      type: {{ entry.type }} <br>
+      playitems: {{ entry.playitems }} <br>
+      <a class="play-entry" href="{{ url_for('play_entry', entrieID=entry.id) }}">Play Item</a> |
+      <a class="update-cache" href="{{ url_for('update_cache', entrieID=entry.id) }}">Update Item Cache</a>
+      {% if session.logged_in %} |
+      <a class="write-entry" href="{{ url_for('write_entry', entrieID=entry.id) }}">Write to tag</a>
+      |
+      <a class="remove-entry" href="{{ url_for('remove_entry', entrieID=entry.id) }}">Remove Item</a>
+
+      {% endif %}
+  {% else %}
+    <li><em>Unbelievable.  No entries here so far</em>
+  {% endfor %}
+  </ul>
+{% endblock %}
