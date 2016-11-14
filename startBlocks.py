@@ -212,8 +212,11 @@ def rotaryTouch():
 @app.route('/touchedTag/<aTag>')
 def touchedTag(aTag):
     entry = query_db('select * from entries where tag_id = ?', [aTag], one=True)
-    startOneLedPulse()
-    sonosController.play(entry)
+    if entry:
+        startOneLedPulse()
+        sonosController.play(entry)
+    else:
+        print('no entry found')
     return redirect(url_for('show_entries'))
 
 @app.route('/')
