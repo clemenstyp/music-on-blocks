@@ -126,90 +126,68 @@ def startSonos():
         if raspberryPi:
             raspberryPi.readNFC(touchCallback, releaseCallback)
 
-# flask web setings
 
-@app.route("/togglePlayPause")
+
 def togglePlayPause():
     startOneLedPulse()
     sonosController.playPause()
-    return redirect(url_for('show_entries'))
 
-
-@app.route("/pause")
+ 
 def pause():
     startOneLedPulse()
     sonosController.pause()
-    return redirect(url_for('show_entries'))
 
 
-@app.route("/play")
 def play():
     startOneLedPulse()
     sonosController.play()
-    return redirect(url_for('show_entries'))
 
 
-@app.route("/toggleNext")
 def toggleNext():
     startOneLedPulse()
     sonosController.next()
     return redirect(url_for('show_entries'))
 
 
-@app.route("/togglePrev")
+
 def togglePrev():
     startOneLedPulse()
     sonosController.previous()
-    return redirect(url_for('show_entries'))
 
 
-@app.route("/toggleUnjoin")
 def toggleUnjoin():
     startOneLedPulse()
     sonosController.unjoinForced()
-    return redirect(url_for('show_entries'))
 
 
-@app.route("/toggleVolUp")
 def toggleVolUp():
     startOneLedPulse()
     sonosController.volumeUp(1)
-    return redirect(url_for('show_entries'))
 
 
-@app.route("/toggleVolDown")
 def toggleVolDown():
     startOneLedPulse()
     sonosController.volumeUp(-1)
-    return redirect(url_for('show_entries'))
 
 
-@app.route("/toggleShuffle")
 def toggleShuffle():
     startOneLedPulse()
     sonosController.togglePlayModeShuffle()
     #it schoud toggle between shufffle and normal
-    return redirect(url_for('show_entries'))
 
 
-@app.route("/leftRotaryTurn")
 def leftRotaryTurn():
     sonosController.volumeUp(1)
-    return redirect(url_for('show_entries'))
 
 
-@app.route("/rightRotaryTurn")
 def rightRotaryTurn():
     sonosController.volumeUp(-1)
-    return redirect(url_for('show_entries'))
 
-@app.route("/rotaryTouch")
+
 def rotaryTouch():
     togglePlayPause()
-    return redirect(url_for('show_entries'))
 
 
-@app.route('/touchedTag/<aTag>')
 def touchedTag(aTag):
     entry = query_db('select * from entries where tag_id = ?', [aTag], one=True)
     if entry:
@@ -217,7 +195,9 @@ def touchedTag(aTag):
         sonosController.play(entry)
     else:
         print('no entry found')
-    return redirect(url_for('show_entries'))
+
+
+# flask web views
 
 @app.route('/')
 def show_entries():
