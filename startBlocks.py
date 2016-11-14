@@ -128,63 +128,63 @@ def startSonos():
 
 
 
-def togglePlayPause():
+def togglePlayPause(event):
     startOneLedPulse()
     sonosController.playPause()
 
 
-def pause():
+def pause(event):
     startOneLedPulse()
     sonosController.pause()
 
 
-def play():
+def play(event):
     startOneLedPulse()
     sonosController.play()
 
 
-def toggleNext():
+def toggleNext(event):
     startOneLedPulse()
     sonosController.next()
     return redirect(url_for('show_entries'))
 
 
 
-def togglePrev():
+def togglePrev(event):
     startOneLedPulse()
     sonosController.previous()
 
 
-def toggleUnjoin():
+def toggleUnjoin(event):
     startOneLedPulse()
     sonosController.unjoinForced()
 
 
-def toggleVolUp():
+def toggleVolUp(event):
     startOneLedPulse()
     sonosController.volumeUp(1)
 
 
-def toggleVolDown():
+def toggleVolDown(event):
     startOneLedPulse()
     sonosController.volumeUp(-1)
 
 
-def toggleShuffle():
+def toggleShuffle(event):
     startOneLedPulse()
     sonosController.togglePlayModeShuffle()
     #it schoud toggle between shufffle and normal
 
 
-def leftRotaryTurn():
+def leftRotaryTurn(event):
     sonosController.volumeUp(1)
 
 
-def rightRotaryTurn():
+def rightRotaryTurn(event):
     sonosController.volumeUp(-1)
 
 
-def rotaryTouch():
+def rotaryTouch(event):
     togglePlayPause()
 
 

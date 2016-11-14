@@ -48,13 +48,13 @@ class RaspberryPi(object):
     def rotaryEventHandler(self, event):
         if event == RotaryEncoder.CLOCKWISE:
             # print("Rotary CLOCKWISE")
-            self.rightRotaryTurn()
+            self.rightRotaryTurn(event)
         elif event == RotaryEncoder.ANTICLOCKWISE:
             # print("Rotary ANTICLOCKWISE")
-            self.leftRotaryTurn()
+            self.leftRotaryTurn(event)
         elif event == RotaryEncoder.BUTTONDOWN:
             # print("Rotary Button down event")
-            self.rotaryTouch()
+            self.rotaryTouch(event)
         elif event == RotaryEncoder.BUTTONUP:
             print("Rotary Button up event")
 
@@ -167,7 +167,7 @@ class RaspberryPi(object):
                 if self.lastTagUid != 'stop':
                     releaseCallback()
                     self.lastTagUid = 'stop'
-            oldStatus = status
+            self.oldStatus = status
             # sleep(0.1);
 
 
