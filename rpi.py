@@ -58,7 +58,7 @@ class RaspberryPi(object):
         elif event == RotaryEncoder.BUTTONUP:
             print("Rotary Button up event")
 
-    def startOneLedPulse(self):
+    def startOnePulseLed(self):
         self.ledPulse.startOnePulseLed()
 
 
