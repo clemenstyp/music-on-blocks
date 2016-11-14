@@ -36,9 +36,11 @@ lastTag = None
 
 def connect_db():
     """Connects to the specific database."""
-    rv = sqlite3.connect(app.config['DATABASE'])
-    rv.row_factory = sqlite3.Row
-    return rv
+    with app.app_context():
+        # call your method here
+        rv = sqlite3.connect(app.config['DATABASE'])
+        rv.row_factory = sqlite3.Row
+        return rv
 
 
 def get_db():
@@ -91,7 +93,7 @@ def startOneLedPulse():
 
 
 def touchCallback(aHexTag):
-    aTag = str(aHexTag.uid).encode("hex")  # get the UID of the touched tag
+    aTag = str(aHexTag).encode("hex")  # get the UID of the touched tag
     global lastTag
     lastTag = aTag
     touchedTag(aTag)

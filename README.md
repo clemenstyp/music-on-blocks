@@ -11,27 +11,23 @@ You'll need a raspberry pi with some linus on it. I always use a raspbian image,
 
 After installing the raspbian, I recommend to change the default password and the hostname. 
 
-Before we can use RFID-RC522 we have to enable SPI Interface (Device Tree Overlays) (http://raspmer.blogspot.de/2015/07/how-to-use-rfid-rc522-on-raspbian.html)
+Before we can use RFID-RC522 we have to enable SPI Interface 
 
-Edit on /boot/config.txt and add the following:
+`sudo raspi-config`
+in "Advanced Options"  enable "SPI"
 
-device_tree_param=spi=on
-dtoverlay=spi-bcm2708
+Installation SPI-Py (as root)
 
-And edit /etc/modprobe.d/raspi-blacklist.conf and add # (comment) on line "blacklist spi-bcm2708"
-
-it should look like this one: #blacklist spi-bcm2708
-
-After a reboot Raspberry PI (sudo shutdown -r now) you can re-check SPI Interface software by calling: 
-`$ dmesg | grep spi`
-`[    5.408904] bcm2708_spi 20204000.spi: master is unqueued, this is deprecated`
-`[    5.659213] bcm2708_spi 20204000.spi: SPI Controller at 0x20204000 (irq 80)`
-
-`$ lsmod`
-`spi_bcm2708             6010  0`
+apt install python-dev
+apt install gcc
+git clone https://github.com/lthiery/SPI-Py
+cd SPI-Py
+python setup.py install
 
 
-download the source:
+
+
+Download the source: (perhaps you'll have to install git, python and python-pip)
 `git clone https://github.com/clemenstyp/music-on-blocks.git`
 
 change into the application folder
@@ -41,12 +37,22 @@ The Aplication depends on several external libraries. The easiest way to install
 
 `pip install -r requirements.txt`
 
+But for the led you'll have to install pigpio: http://abyz.co.uk/rpi/pigpio/download.html
+
+rm master.zip
+sudo rm -rf pigpio-master
+wget https://github.com/joan2937/pigpio/archive/master.zip
+unzip master.zip
+cd pigpio-master
+make -j4
+sudo make install
+
 Once all dependanices have been installed, rename `settings.py.example` to `settings.py` and edit the file.
 
 ## Basic Usage
 Run `python startBlocks.py` to start the application. Then open up a web browser and visit [http://raspberryPi:8080](http://raspberryPi:8080).
 
-you can also use the startScript.sh
+You can also use the startScript.sh, or call it from /etc/rc.local 
 
 ## License
 

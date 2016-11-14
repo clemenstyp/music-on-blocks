@@ -19,12 +19,22 @@ Before use RFID-RC522. Enable SPI Interface (Device Tree Overlays)
 
 On new kernel use Device Tree Overlays.
 
-Edit on /boot/config.txt.
-
-add new line
+Edit on /boot/config.txt and add the following:
 
 device_tree_param=spi=on
 dtoverlay=spi-bcm2708
+
+And edit /etc/modprobe.d/raspi-blacklist.conf and add # (comment) on line "blacklist spi-bcm2708"
+
+it should look like this one: #blacklist spi-bcm2708
+
+After a reboot Raspberry PI (sudo shutdown -r now) you can re-check SPI Interface software by calling: 
+`$ dmesg | grep spi`
+`[    5.408904] bcm2708_spi 20204000.spi: master is unqueued, this is deprecated`
+`[    5.659213] bcm2708_spi 20204000.spi: SPI Controller at 0x20204000 (irq 80)`
+
+`$ lsmod`
+`spi_bcm2708             6010  0`
 
 Reference : https://github.com/raspberrypi/firmware/tree/master/boot/overlays
 
