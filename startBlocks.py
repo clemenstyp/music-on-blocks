@@ -146,8 +146,6 @@ def play(event):
 def toggleNext(event):
     startOneLedPulse()
     sonosController.next()
-    return redirect(url_for('show_entries'))
-
 
 
 def togglePrev(event):
@@ -177,11 +175,11 @@ def toggleShuffle(event):
 
 
 def leftRotaryTurn(event):
-    sonosController.volumeUp(1)
+    sonosController.volumeUp(-1)
 
 
 def rightRotaryTurn(event):
-    sonosController.volumeUp(-1)
+    sonosController.volumeUp(1)
 
 
 def rotaryTouch(event):
