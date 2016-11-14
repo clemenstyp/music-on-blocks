@@ -160,13 +160,13 @@ class RaspberryPi(object):
                 tagUid = str(uid).encode("hex")  # get the UID of the touched tag
                 if self.lastTagUid != tagUid:
                     touchCallback(uid)
-                    lastTagUid = tagUid
+                    self.lastTagUid = tagUid
             elif self.oldStatus == status:
                 # else:
                 # print ("No Card detected")
                 if self.lastTagUid != 'stop':
                     releaseCallback()
-                    lastTagUid = 'stop'
+                    self.lastTagUid = 'stop'
             oldStatus = status
             # sleep(0.1);
 

@@ -132,7 +132,7 @@ def togglePlayPause():
     startOneLedPulse()
     sonosController.playPause()
 
- 
+
 def pause():
     startOneLedPulse()
     sonosController.pause()
