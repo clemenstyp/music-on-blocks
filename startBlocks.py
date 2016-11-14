@@ -36,11 +36,9 @@ lastTag = None
 
 def connect_db():
     """Connects to the specific database."""
-    with app.app_context():
-        # call your method here
-        rv = sqlite3.connect(app.config['DATABASE'])
-        rv.row_factory = sqlite3.Row
-        return rv
+    rv = sqlite3.connect(app.config['DATABASE'])
+    rv.row_factory = sqlite3.Row
+    return rv
 
 
 def get_db():
@@ -93,18 +91,24 @@ def startOneLedPulse():
 
 
 def touchCallback(aHexTag):
-    aTag = str(aHexTag).encode("hex")  # get the UID of the touched tag
-    global lastTag
-    lastTag = aTag
-    touchedTag(aTag)
-    return True
+    with app.app_context():
+    # within this block, current_app points to app.
+        aTag = str(aHexTag).encode("hex")  # get the UID of the touched tag
+        global lastTag
+        lastTag = aTag
+        touchedTag(aTag)
+        return True
+    return False
 
 def releaseCallback():
-    global lastTag
-    lastTag = None
-    sonosController.saveLastTagTime()
-    sonosController.pause()
-    return True
+    with app.app_context():
+    # within this block, current_app points to app.
+        global lastTag
+        lastTag = None
+        sonosController.saveLastTagTime()
+        sonosController.pause()
+        return True
+    return False
 
 def startSonos():
     global raspberryPi
