@@ -16,7 +16,13 @@
         <dt>item *:
         <dd><input type=text size=30 name=item>
         <dt>type *:
-        <dd><input type=text size=30 name=type>
+        <dd><select name=type>
+              <option value="url">Url</option>
+              <option value="playlist">Playlist</option>
+              <option value="album">Album</option>
+              <option value="artist">Artist</option>
+              <option value="genre">Genre</option>
+            </select>
         <dd><input type=submit value='Add Item'>
       </dl>
     </form>
@@ -30,7 +36,7 @@
       volume: {{ entry.volume }} <br>
       item: {{ entry.item }} <br>
       type: {{ entry.type }} <br>
-      playitems: {{ entry.playitems }} <br>
+      playitems: {{ entry.playitems|truncate(25, True)}} <br>
       <a class="play-entry" href="{{ url_for('play_entry', entrieID=entry.id) }}">Play Item</a> |
       <a class="update-cache" href="{{ url_for('update_cache', entrieID=entry.id) }}">Update Item Cache</a>
       {% if session.logged_in %} |

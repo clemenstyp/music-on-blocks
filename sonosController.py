@@ -8,8 +8,13 @@ import os.path
 from soco import SoCo
 from soco.data_structures import DidlObject
 from soco.data_structures import DidlResource
+from soco.data_structures import *
+
 
 class SonosController(object):
+
+
+
     def __init__(self, dayVol=25, nightVol=15, daytimeRange=[7, 17], unjoin=True, clear=True,
                  settingsFolder="settings", restartTime = 10):
         self.dayVol = dayVol
@@ -23,14 +28,14 @@ class SonosController(object):
 
     def startSonos(self, sonos_ip):
         if sonos_ip == "demo":
-            self.sonos = None
+            self.sonosDevice = None
             print("Using Sonos Demo...")
             return
 
         # Sonos setup
         print("Connecting to Sonos...")
-        self.sonos = SoCo(sonos_ip)
-        print("Connected to Sonos: " + self.sonos.player_name)
+        self.sonosDevice = SoCo(sonos_ip)
+        print("Connected to Sonos: " + self.sonosDevice.player_name)
 
         # Use this section to get the URIs of new songs we want to add
         info = self.get_current_track_info()
@@ -52,7 +57,22 @@ class SonosController(object):
     #         songs = {}
     #     return songs
 
+    def getCache(self, entry):
+        playitems = self.loadPlayList(entry)
+        return to_didl_string(*playitems)
+
+
+
     def getPlayList(self, entry):
+
+        playitems = entry['playitems']
+        if playitems and not playitems == '':
+            return from_didl_string(playitems)
+        else:
+            return self.loadPlayList(entry)
+
+
+    def loadPlayList(self, entry):
         returnItems = []
         if entry['type'] == 'url':
             returnItems = self.getUrlCache(entry)
@@ -81,10 +101,10 @@ class SonosController(object):
 
     def getUrlCache(self, entry):
         item = DidlResource(uri=entry['item'], protocol_info=None)
-        return [item]
+        return list([item])
 
     def getMusicLibraryInformationCache(self, searchType, entry, valueType):
-        returnItems = []
+        returnItems = list([])
 
         startItem = 0
         startAtIndex = 0
@@ -92,7 +112,7 @@ class SonosController(object):
             returnedItems = 0
             try:
                 # self.music_library.get_music_library_information('albums', start, max_items, full_album_art_uri)
-                playlist_info = self.sonos.music_library.get_music_library_information(searchType, start=startAtIndex, max_items=100)
+                playlist_info = self.sonosDevice.music_library.get_music_library_information(searchType, start=startAtIndex, max_items=100)
                 returnedItems = playlist_info.number_returned
             except:
                 print("some error")
@@ -104,7 +124,7 @@ class SonosController(object):
                     if playlistTitle == entry['item']:
                         print('found ' + entry['item'])
                         try:
-                            track_list = self.sonos.music_library.browse(playlist)
+                            track_list = self.sonosDevice.music_library.browse(playlist)
                             returnItems.extend(track_list)
                         except:
                             print("some error")
@@ -121,12 +141,12 @@ class SonosController(object):
 
         for item in items:
             try:
-                self.sonos.add_to_queue(item)
+                self.sonosDevice.add_to_queue(item)
             except:
                 print("  error adding...")
             if startPlaying == False:
                 try:
-                    startPlaying = self.sonos.play_from_queue(0, start=True)
+                    startPlaying = self.sonosDevice.play_from_queue(0, start=True)
                     #startPlaying = self.sonos.play()
                     print("  Playing...")
                 except:
@@ -135,7 +155,7 @@ class SonosController(object):
         if startPlaying == False:
             try:
                 #startPlaying = self.sonos.play_from_queue(0, start=True)
-                startPlaying = self.sonos.play()
+                startPlaying = self.sonosDevice.play()
                 print("  Playing...")
             except:
                 print("  error starting to play...")
@@ -195,7 +215,7 @@ class SonosController(object):
     def saveLastTagTime(self):
         #only save when a track is playing
         try:
-            transportInfo = self.sonos.get_current_transport_info()
+            transportInfo = self.sonosDevice.get_current_transport_info()
             if transportInfo['current_transport_state'] == 'PLAYING':
                 lastTag = self.lastTag()
                 if not lastTag is None:
@@ -240,7 +260,7 @@ class SonosController(object):
     def setSkipTo(self, time_offset=None):
         if time_offset:
             try:
-                self.sonos.seek(time_offset)
+                self.sonosDevice.seek(time_offset)
                 print("  Skipped to " + time_offset)
                 return True
             except:
@@ -277,7 +297,7 @@ class SonosController(object):
 
     def setSonosVolume(self, volume):
         try:
-            self.sonos.volume = volume
+            self.sonosDevice.volume = volume
         except:
             print("some error")
         return True
@@ -285,7 +305,7 @@ class SonosController(object):
     def sonosVolume(self):
         volume = 0
         try:
-            volume = self.sonos.volume
+            volume = self.sonosDevice.volume
         except:
             print("some error")
         return volume
@@ -297,20 +317,20 @@ class SonosController(object):
 
     def togglePlayModeShuffle(self):
         try:
-            if self.sonos.play_mode == 'SHUFFLE':
-                self.sonos.play_mode = 'REPEAT_ALL'
+            if self.sonosDevice.play_mode == 'SHUFFLE':
+                self.sonosDevice.play_mode = 'REPEAT_ALL'
                 print("now: REPEAT_ALL")
-            elif self.sonos.play_mode == 'REPEAT_ALL':
-                self.sonos.play_mode = 'SHUFFLE'
+            elif self.sonosDevice.play_mode == 'REPEAT_ALL':
+                self.sonosDevice.play_mode = 'SHUFFLE'
                 print("now: SHUFFLE")
-            elif self.sonos.play_mode == 'NORMAL':
-                self.sonos.play_mode = 'SHUFFLE_NOREPEAT'
+            elif self.sonosDevice.play_mode == 'NORMAL':
+                self.sonosDevice.play_mode = 'SHUFFLE_NOREPEAT'
                 print("now: SHUFFLE_NOREPEAT")
-            elif self.sonos.play_mode == 'SHUFFLE_NOREPEAT':
-                self.sonos.play_mode = 'NORMAL'
+            elif self.sonosDevice.play_mode == 'SHUFFLE_NOREPEAT':
+                self.sonosDevice.play_mode = 'NORMAL'
                 print("now: NORMAL")
             else:
-                 self.sonos.play_mode = 'NORMAL'
+                 self.sonosDevice.play_mode = 'NORMAL'
                  print("now: NORMAL")
             return True
         except:
@@ -319,7 +339,7 @@ class SonosController(object):
     def playModeNormal(self):
         try:
             print("do NORMAL")
-            self.sonos.play_mode = 'NORMAL'
+            self.sonosDevice.play_mode = 'NORMAL'
             return True
         except:
             return False
@@ -327,7 +347,7 @@ class SonosController(object):
     def playModeRepeatAll(self):
         try:
             print("do REPEAT_ALL")
-            self.sonos.play_mode = 'REPEAT_ALL'
+            self.sonosDevice.play_mode = 'REPEAT_ALL'
             return True
         except:
             return False
@@ -335,7 +355,7 @@ class SonosController(object):
     def playModeShuffle(self):
         try:
             print("do SHUFFLE")
-            self.sonos.play_mode = 'SHUFFLE'
+            self.sonosDevice.play_mode = 'SHUFFLE'
             return True
         except:
             return False
@@ -343,7 +363,7 @@ class SonosController(object):
     def playModeShuffleNoRepeat(self):
         try:
             print("do SHUFFLE_NOREPEAT")
-            self.sonos.play_mode = 'SHUFFLE_NOREPEAT'
+            self.sonosDevice.play_mode = 'SHUFFLE_NOREPEAT'
             return True
         except:
             return False
@@ -351,7 +371,7 @@ class SonosController(object):
     def clearQueue(self):
         if self.clear:
             try:
-                self.sonos.clear_queue()
+                self.sonosDevice.clear_queue()
                 return True
             except:
                 return False
@@ -360,7 +380,7 @@ class SonosController(object):
     def unjoin(self):
         if self.unjoinBool == True:
             try:
-                self.sonos.unjoin()
+                self.sonosDevice.unjoin()
                 print("unjoined")
                 return True
             except:
@@ -369,7 +389,7 @@ class SonosController(object):
 
     def unjoinForced(self):
         try:
-            self.sonos.unjoin()
+            self.sonosDevice.unjoin()
             print("unjoined")
             return True
         except:
@@ -377,7 +397,7 @@ class SonosController(object):
 
     def stop(self):
         try:
-            self.sonos.stop()
+            self.sonosDevice.stop()
             print("  Sonos stopped")
             return True
         except:
@@ -386,7 +406,7 @@ class SonosController(object):
 
     def pause(self):
         try:
-            self.sonos.pause()
+            self.sonosDevice.pause()
             print("  Sonos paused")
             return True
         except:
@@ -395,7 +415,7 @@ class SonosController(object):
 
     def next(self):
         try:
-            self.sonos.next()
+            self.sonosDevice.next()
             print("  playing next track")
             return True
         except:
@@ -404,7 +424,7 @@ class SonosController(object):
 
     def previous(self):
         try:
-            self.sonos.previous()
+            self.sonosDevice.previous()
             print("  playing previous track")
             return True
         except:
@@ -413,7 +433,7 @@ class SonosController(object):
 
     def restart(self):
         try:
-            self.sonos.play()
+            self.sonosDevice.play()
             print("  unpause()...")
             return True
         except:
@@ -422,18 +442,18 @@ class SonosController(object):
 
     def playPause(self):
         try:
-            transportInfo = self.sonos.get_current_transport_info()
+            transportInfo = self.sonosDevice.get_current_transport_info()
             if transportInfo['current_transport_state'] == 'PLAYING':
-                self.sonos.pause()
+                self.sonosDevice.pause()
                 print("  pause()...")
             elif transportInfo['current_transport_state'] == 'PAUSED_PLAYBACK':
-                self.sonos.play()
+                self.sonosDevice.play()
                 print("  play()...")
             elif transportInfo['current_transport_state'] == 'STOPPED':
-                self.sonos.play()
+                self.sonosDevice.play()
                 print("  play()... from start")
             else:
-                self.sonos.play()
+                self.sonosDevice.play()
                 print("  play()... from unknown state")
             return True
         except:
@@ -442,7 +462,7 @@ class SonosController(object):
 
     def get_current_track_info(self):
         try:
-            trackInfo = self.sonos.get_current_track_info()
+            trackInfo = self.sonosDevice.get_current_track_info()
             return trackInfo
         except:
             return {}

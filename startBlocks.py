@@ -206,16 +206,15 @@ def show_entries():
 @app.route('/update/<entrieID>')
 def update_cache(entrieID):
     flash('caching currently not possible')
-    # entry = query_db('select * from entries where id = ?',
-    #                 [entrieID], one=True)
-    # if entry is None:
-    #     flash('nothing found, try again')
-    # else:
-    #     playitems = sonosController.getCache(entry)
-    #
-    #     db.execute("UPDATE entries SET playitems = ? WHERE id = ?", [playitems, entrieID])
-    #     db.commit()
-    #     flash('Updated cache for "' + entry['title'] + '"')
+    entry = query_db('select * from entries where id = ?', [entrieID], one=True)
+    if entry is None:
+        flash('nothing found, try again')
+    else:
+        playitems = sonosController.getCache(entry)
+        db = get_db()
+        db.execute("UPDATE entries SET playitems = ? WHERE id = ?", [playitems, entrieID])
+        db.commit()
+        flash('Updated cache for "' + entry['title'] + '"')
 
     return redirect(url_for('show_entries'))
 
