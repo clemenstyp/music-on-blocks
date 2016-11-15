@@ -8,7 +8,7 @@ DAY_VOL = 100  # max daytime volume, 100 means no volume change
 NIGHT_VOL = 100  # max nighttime volume
 DAYTIME_RANGE = [7, 17]  # daytime is 7:00a to 5:59p
 UNJOIN = False  #True oder False
-RPI_DEMO = True # bei True verbindet ist er nicht auf einem rPi (test auf PC)
+RPI_DEMO = False # bei True verbindet ist er nicht auf einem rPi (test auf PC)
 RESTART_TIME = 30 # restartTime in Seconds
 
 DATABASE_NAME = 'songs.db'

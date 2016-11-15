@@ -59,7 +59,10 @@ class RaspberryPi(object):
             print("Rotary Button up event")
 
     def startOnePulseLed(self):
-        self.ledPulse.startOnePulseLed()
+        try:
+            self.ledPulse.startOnePulseLed()
+        except:
+            return
 
 
     def __init__(self, readerType, pause, play, togglePlayPause, toggleNext, togglePrev, toggleUnjoin, toggleVolUp, toggleVolDown, toggleShuffle, rightRotaryTurn, leftRotaryTurn, rotaryTouch):
