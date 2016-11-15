@@ -2,8 +2,8 @@ import RPi.GPIO as GPIO
 from rotary_class import RotaryEncoder
 from ledPulse import LedPulse
 
-class RaspberryPi(object):
 
+class RaspberryPi(object):
     # we are hopefully on an rPi, so init all gpio stuff
 
     GPIO.setmode(GPIO.BOARD)
@@ -64,8 +64,8 @@ class RaspberryPi(object):
         except:
             return
 
-
-    def __init__(self, readerType, pause, play, togglePlayPause, toggleNext, togglePrev, toggleUnjoin, toggleVolUp, toggleVolDown, toggleShuffle, rightRotaryTurn, leftRotaryTurn, rotaryTouch):
+    def __init__(self, readerType, pause, play, togglePlayPause, toggleNext, togglePrev, toggleUnjoin, toggleVolUp,
+                 toggleVolDown, toggleShuffle, rightRotaryTurn, leftRotaryTurn, rotaryTouch):
         self.rightRotaryTurn = rightRotaryTurn
         self.leftRotaryTurn = leftRotaryTurn
         self.rotaryTouch = rotaryTouch
@@ -150,10 +150,12 @@ class RaspberryPi(object):
             print("Tag released")
             releaseCallback()
             print("")
-            sleep(0.1);
+            from time import sleep
+            sleep(0.1)
 
         elif self.readerType == 'MFRC522':
             # Scan for cards
+            # noinspection PyUnusedLocal,PyUnusedLocal
             (status, TagType) = self.MIFAREReader.MFRC522_Request(self.MIFAREReader.PICC_REQIDL)
             # If a card is found
             # Get the UID of the card
@@ -173,15 +175,11 @@ class RaspberryPi(object):
             self.oldStatus = status
             # sleep(0.1);
 
-
     # Capture SIGINT for cleanup when the script is aborted
+    # noinspection PyUnusedLocal
     def end_read(self, signal, frame):
-        global continue_reading
         print("Ctrl+C captured, ending read.")
-        continue_reading = False
         GPIO.cleanup()
 
         # Hook the SIGINT
         signal.signal(signal.SIGINT, self.end_read)
-
-

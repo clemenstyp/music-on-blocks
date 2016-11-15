@@ -1,26 +1,15 @@
 #!/usr/bin/env python
 from __future__ import print_function
-from time import sleep
 
-from sonosController import SonosController
-import sonosController
-import logging
-from logging.handlers import RotatingFileHandler
-
-import time
-import hashlib
-import json
-
-import requests
 import os
 import sqlite3
-from time import strftime
-import traceback
-from flask import Flask, request, session, g, redirect, url_for, abort, \
-     render_template, flash, jsonify
+# noinspection PyCompatibility
 import thread
-import time
 
+from flask import Flask, request, session, g, redirect, url_for, abort, \
+    render_template, flash
+
+from sonosController import SonosController
 
 app = Flask(__name__)
 
@@ -30,9 +19,12 @@ app.config.update(dict(
 ))
 
 raspberryPi = None
-sonosController = None
+mySonosController = None
+
 lastTag = None
-#database stuff
+
+
+# database stuff
 
 def connect_db():
     """Connects to the specific database."""
@@ -50,11 +42,13 @@ def get_db():
     return g.sqlite_db
 
 
+# noinspection PyUnusedLocal
 @app.teardown_appcontext
 def close_db(error):
     """Closes the database again at the end of the request."""
     if hasattr(g, 'sqlite_db'):
         g.sqlite_db.close()
+
 
 def init_db():
     """Initializes the database."""
@@ -64,12 +58,13 @@ def init_db():
             db.cursor().executescript(f.read())
         db.commit()
 
+
 @app.cli.command('initdb')
 def initdb_command():
     """Initializes the database."""
     init_db()
-    print
-    'Initialized the database.'
+    print('Initialized the database.')
+
 
 def query_db(query, args=(), one=False):
     cur = get_db().execute(query, args)
@@ -77,9 +72,11 @@ def query_db(query, args=(), one=False):
     cur.close()
     return (rv[0] if rv else None) if one else rv
 
+
 if not os.path.exists(app.config['DATABASE']):
     init_db()
     print('Initialized the database.')
+
 
 # commen commands
 
@@ -92,96 +89,112 @@ def startOneLedPulse():
 
 def touchCallback(aHexTag):
     with app.app_context():
-    # within this block, current_app points to app.
+        # within this block, current_app points to app.
         aTag = str(aHexTag).encode("hex")  # get the UID of the touched tag
         global lastTag
         lastTag = aTag
         touchedTag(aTag)
         return True
-    return False
+
 
 def releaseCallback():
     with app.app_context():
-    # within this block, current_app points to app.
+        # within this block, current_app points to app.
         global lastTag
         lastTag = None
-        sonosController.saveLastTagTime()
-        sonosController.pause()
+        mySonosController.saveLastTagTime()
+        mySonosController.pause()
         return True
-    return False
+
 
 def startSonos():
     global raspberryPi
-    global sonosController
+    global mySonosController
 
-    #posibillity to start a demo controller
-    sonosController = SonosController(dayVol=app.config['DAY_VOL'], nightVol=app.config['NIGHT_VOL'], daytimeRange=app.config['DAYTIME_RANGE'], unjoin=app.config['UNJOIN'], clear=True, restartTime=app.config['RESTART_TIME'])
-    sonosController.startSonos(app.config['SONOS_IP'])
+    # posibillity to start a demo controller
+    mySonosController = SonosController(dayVol=app.config['DAY_VOL'], nightVol=app.config['NIGHT_VOL'],
+                                        daytimeRange=app.config['DAYTIME_RANGE'], unjoin=app.config['UNJOIN'],
+                                        clear=True,
+                                        restartTime=app.config['RESTART_TIME'])
+    mySonosController.startSonos(app.config['SONOS_IP'])
 
     if not app.config['RPI_DEMO']:
         from rpi import RaspberryPi
-        raspberryPi = RaspberryPi(app.config['NFC_READER'], pause, play, togglePlayPause, toggleNext, togglePrev, toggleUnjoin, toggleVolUp, toggleVolDown, toggleShuffle, rightRotaryTurn, leftRotaryTurn, rotaryTouch)
+        raspberryPi = RaspberryPi(app.config['NFC_READER'], pause, play, togglePlayPause, toggleNext, togglePrev,
+                                  toggleUnjoin, toggleVolUp, toggleVolDown, toggleShuffle, rightRotaryTurn,
+                                  leftRotaryTurn, rotaryTouch)
 
     while True:
         if raspberryPi:
             raspberryPi.readNFC(touchCallback, releaseCallback)
 
 
-
+# noinspection PyUnusedLocal
 def togglePlayPause(event):
     startOneLedPulse()
-    sonosController.playPause()
+    mySonosController.playPause()
 
 
+# noinspection PyUnusedLocal
 def pause(event):
     startOneLedPulse()
-    sonosController.pause()
+    mySonosController.pause()
 
 
+# noinspection PyUnusedLocal
 def play(event):
     startOneLedPulse()
-    sonosController.play()
+    mySonosController.play()
 
 
+# noinspection PyUnusedLocal
 def toggleNext(event):
     startOneLedPulse()
-    sonosController.next()
+    mySonosController.next()
 
 
+# noinspection PyUnusedLocal
 def togglePrev(event):
     startOneLedPulse()
-    sonosController.previous()
+    mySonosController.previous()
 
 
+# noinspection PyUnusedLocal
 def toggleUnjoin(event):
     startOneLedPulse()
-    sonosController.unjoinForced()
+    mySonosController.unjoinForced()
 
 
+# noinspection PyUnusedLocal
 def toggleVolUp(event):
     startOneLedPulse()
-    sonosController.volumeUp(1)
+    mySonosController.volumeUp(1)
 
 
+# noinspection PyUnusedLocal
 def toggleVolDown(event):
     startOneLedPulse()
-    sonosController.volumeUp(-1)
+    mySonosController.volumeUp(-1)
 
 
+# noinspection PyUnusedLocal
 def toggleShuffle(event):
     startOneLedPulse()
-    sonosController.togglePlayModeShuffle()
-    #it schoud toggle between shufffle and normal
+    mySonosController.togglePlayModeShuffle()
+    # it schoud toggle between shufffle and normal
 
 
+# noinspection PyUnusedLocal
 def leftRotaryTurn(event):
-    sonosController.volumeUp(-1)
+    mySonosController.volumeUp(-1)
 
 
+# noinspection PyUnusedLocal
 def rightRotaryTurn(event):
-    sonosController.volumeUp(1)
+    mySonosController.volumeUp(1)
 
 
+# noinspection PyArgumentList,PyUnusedLocal
 def rotaryTouch(event):
     togglePlayPause()
 
@@ -190,7 +203,7 @@ def touchedTag(aTag):
     entry = query_db('select * from entries where tag_id = ?', [aTag], one=True)
     if entry:
         startOneLedPulse()
-        sonosController.play(entry)
+        mySonosController.play(entry)
     else:
         print('no entry found')
 
@@ -210,14 +223,13 @@ def update_cache(entrieID):
     if entry is None:
         flash('nothing found, try again')
     else:
-        playitems = sonosController.getCache(entry)
+        playitems = mySonosController.getCache(entry)
         db = get_db()
         db.execute("UPDATE entries SET playitems = ? WHERE id = ?", [playitems, entrieID])
         db.commit()
         flash('Updated cache for "' + entry['title'] + '"')
 
     return redirect(url_for('show_entries'))
-
 
 
 @app.route('/add', methods=['POST'])
@@ -231,8 +243,10 @@ def add_entry():
     time_offset = request.form['time_offset']
     volume = request.form['volume']
     item = request.form['item']
-    type = request.form['type']
-    db.execute('insert into entries (title, comment, tag_id, time_offset, volume, item, type) values (?, ?, ?, ?, ?, ?, ?)', [title, comment,tag_id, time_offset, volume, item, type ])
+    itemType = request.form['type']
+    db.execute(
+        'INSERT INTO entries (title, comment, tag_id, time_offset, volume, item, type) VALUES (?, ?, ?, ?, ?, ?, ?)',
+        [title, comment, tag_id, time_offset, volume, item, itemType])
     db.commit()
     flash('New entry was successfully posted')
     return redirect(url_for('show_entries'))
@@ -243,21 +257,22 @@ def remove_entry(entrieID):
     if not session.get('logged_in'):
         abort(401)
     db = get_db()
-    db.execute('delete from entries where id=?', [entrieID])
+    db.execute('DELETE FROM entries WHERE id=?', [entrieID])
     db.commit()
     flash('New entry was successfully removed')
     return redirect(url_for('show_entries'))
 
+
 @app.route('/play/<entrieID>')
 def play_entry(entrieID):
     entry = query_db('select * from entries where id = ?',
-                    [entrieID], one=True)
+                     [entrieID], one=True)
     if entry is None:
         flash('nothing found, try again')
     else:
         startOneLedPulse()
         # Look up the song to play and set the right volume depending on whether it's day or night
-        sonosController.play(entry)
+        mySonosController.play(entry)
         flash('Playing entry "' + entry['title'] + '"')
 
     return redirect(url_for('show_entries'))
@@ -283,7 +298,6 @@ def write_entry(entrieID):
     return redirect(url_for('show_entries'))
 
 
-
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     error = None
@@ -305,11 +319,11 @@ def logout():
     flash('You were logged out')
     return redirect(url_for('show_entries'))
 
+
 try:
-   thread.start_new_thread( startSonos, () )
+    thread.start_new_thread(startSonos, ())
 except:
-   print("Error: unable to start thread")
+    print("Error: unable to start thread")
 
 if __name__ == '__main__':
-    app.run(host= '0.0.0.0', port=8080, debug=False)
-
+    app.run(host='0.0.0.0', port=8080, debug=False)

@@ -1,22 +1,20 @@
 #!/usr/bin/env python
 from __future__ import print_function
-import time
-from datetime import datetime, timedelta
+
 import json
 import os.path
+import time
+from datetime import datetime, timedelta
 
 from soco import SoCo
-from soco.data_structures import DidlObject
-from soco.data_structures import DidlResource
 from soco.data_structures import *
 
 
 class SonosController(object):
-
-
-
-    def __init__(self, dayVol=25, nightVol=15, daytimeRange=[7, 17], unjoin=True, clear=True,
-                 settingsFolder="settings", restartTime = 10):
+    def __init__(self, dayVol=25, nightVol=15, daytimeRange=None, unjoin=True, clear=True,
+                 settingsFolder="settings", restartTime=10):
+        if daytimeRange is None:
+            daytimeRange = [7, 17]
         self.dayVol = dayVol
         self.nightVol = nightVol
         self.daytimeRange = daytimeRange
@@ -24,7 +22,8 @@ class SonosController(object):
         self.clear = clear
         self.settings = settingsFolder
         self.restartTime = restartTime
-
+        self.sonosDevice = None
+        self.lastSavedTag = None
 
     def startSonos(self, sonos_ip):
         if sonos_ip == "demo":
@@ -61,8 +60,6 @@ class SonosController(object):
         playitems = self.loadPlayList(entry)
         return to_didl_string(*playitems)
 
-
-
     def getPlayList(self, entry):
 
         playitems = entry['playitems']
@@ -70,7 +67,6 @@ class SonosController(object):
             return from_didl_string(playitems)
         else:
             return self.loadPlayList(entry)
-
 
     def loadPlayList(self, entry):
         returnItems = []
@@ -99,20 +95,24 @@ class SonosController(object):
     def getGenreCache(self, entry):
         return self.getMusicLibraryInformationCache('genres', entry, 'genre')
 
-    def getUrlCache(self, entry):
+    @staticmethod
+    def getUrlCache(entry):
         item = DidlResource(uri=entry['item'], protocol_info=None)
         return list([item])
 
     def getMusicLibraryInformationCache(self, searchType, entry, valueType):
         returnItems = list([])
 
+        # noinspection PyUnusedLocal
         startItem = 0
         startAtIndex = 0
         while True:
             returnedItems = 0
             try:
                 # self.music_library.get_music_library_information('albums', start, max_items, full_album_art_uri)
-                playlist_info = self.sonosDevice.music_library.get_music_library_information(searchType, start=startAtIndex, max_items=100)
+                playlist_info = self.sonosDevice.music_library.get_music_library_information(searchType,
+                                                                                             start=startAtIndex,
+                                                                                             max_items=100)
                 returnedItems = playlist_info.number_returned
             except:
                 print("some error")
@@ -131,10 +131,9 @@ class SonosController(object):
             startAtIndex += returnedItems
 
         # playlist_info = #sonos.music_library.get_music_library_information('sonos_playlists',search_term='Shovels And Rope')
-        #print('Fonud {} Sonos playlists'.format(playlist_info.number_returned))
+        # print('Fonud {} Sonos playlists'.format(playlist_info.number_returned))
 
         return returnItems
-
 
     def playItems(self, items):
         startPlaying = False
@@ -144,17 +143,18 @@ class SonosController(object):
                 self.sonosDevice.add_to_queue(item)
             except:
                 print("  error adding...")
-            if startPlaying == False:
+            if not startPlaying:
                 try:
                     startPlaying = self.sonosDevice.play_from_queue(0, start=True)
-                    #startPlaying = self.sonos.play()
+                    # startPlaying = self.sonos.play()
                     print("  Playing...")
                 except:
                     print("  error starting to play...")
 
-        if startPlaying == False:
+        if not startPlaying:
             try:
-                #startPlaying = self.sonos.play_from_queue(0, start=True)
+                # startPlaying = self.sonos.play_from_queue(0, start=True)
+                # noinspection PyUnusedLocal
                 startPlaying = self.sonosDevice.play()
                 print("  Playing...")
             except:
@@ -196,30 +196,28 @@ class SonosController(object):
 
         return True
 
-
     def lastTag(self):
         try:
-            self.lastSavedTag
+            # noinspection PyUnusedLocal
+            var = self.lastSavedTag
             print("last Tag found")
         except:
             print("last Tag not found")
             self.lastSavedTag = None
         return self.lastSavedTag
 
-
-
     def setLastTag(self, tag_uid):
         print("last Tag saved")
-        self.lastSavedTag = {"tag" : tag_uid, "scan": datetime.now()}
+        self.lastSavedTag = {"tag": tag_uid, "scan": datetime.now()}
 
     def saveLastTagTime(self):
-        #only save when a track is playing
+        # only save when a track is playing
         try:
             transportInfo = self.sonosDevice.get_current_transport_info()
             if transportInfo['current_transport_state'] == 'PLAYING':
                 lastTag = self.lastTag()
                 if not lastTag is None:
-                    self.lastSavedTag = {"tag" : lastTag["tag"], "scan": datetime.now()}
+                    self.lastSavedTag = {"tag": lastTag["tag"], "scan": datetime.now()}
                     print("last tag time saved")
                     return True
                 else:
@@ -228,17 +226,15 @@ class SonosController(object):
             else:
                 print("music is currently not playing")
                 return False
-            return False
         except:
             return False
-
 
     def markUnknown(self, aTagUid):
         tag_uid = str(aTagUid)
         print("  No record for tag UID: " + tag_uid)
         aUnknownTag = {
-        tag_uid: {'comment': 'last scan: ' + str(datetime.now()), 'title': '', 'vol': 1, 'time_offset': None,
-                  'type': None, 'item': None}, }
+            tag_uid: {'comment': 'last scan: ' + str(datetime.now()), 'title': '', 'vol': 1, 'time_offset': None,
+                      'type': None, 'item': None}, }
 
         unknownFileName = self.settings + "/" + "2_unknown_Tags" + ".txt"
         if os.path.isfile(unknownFileName):
@@ -253,7 +249,6 @@ class SonosController(object):
         fobj_out = open(unknownFileName, "w")
         fobj_out.write(dump)
         fobj_out.close()
-
 
     # sonos methods
 
@@ -330,8 +325,8 @@ class SonosController(object):
                 self.sonosDevice.play_mode = 'NORMAL'
                 print("now: NORMAL")
             else:
-                 self.sonosDevice.play_mode = 'NORMAL'
-                 print("now: NORMAL")
+                self.sonosDevice.play_mode = 'NORMAL'
+                print("now: NORMAL")
             return True
         except:
             return False
@@ -378,7 +373,7 @@ class SonosController(object):
         return False
 
     def unjoin(self):
-        if self.unjoinBool == True:
+        if self.unjoinBool:
             try:
                 self.sonosDevice.unjoin()
                 print("unjoined")
@@ -403,7 +398,6 @@ class SonosController(object):
         except:
             return False
 
-
     def pause(self):
         try:
             self.sonosDevice.pause()
@@ -411,7 +405,6 @@ class SonosController(object):
             return True
         except:
             return False
-
 
     def next(self):
         try:
@@ -421,7 +414,6 @@ class SonosController(object):
         except:
             return False
 
-
     def previous(self):
         try:
             self.sonosDevice.previous()
@@ -430,7 +422,6 @@ class SonosController(object):
         except:
             return False
 
-
     def restart(self):
         try:
             self.sonosDevice.play()
@@ -438,7 +429,6 @@ class SonosController(object):
             return True
         except:
             return False
-
 
     def playPause(self):
         try:
@@ -458,7 +448,6 @@ class SonosController(object):
             return True
         except:
             return False
-
 
     def get_current_track_info(self):
         try:

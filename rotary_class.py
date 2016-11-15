@@ -13,6 +13,7 @@
 import RPi.GPIO as GPIO
 
 
+# noinspection PyPep8Naming,PyPep8Naming,PyPep8Naming,PyPep8Naming
 class RotaryEncoder(object):
     CLOCKWISE = 1
     ANTICLOCKWISE = 2
@@ -24,6 +25,7 @@ class RotaryEncoder(object):
     rotary_c = 0
     last_state = 0
     direction = 0
+
     # Initialise rotary encoder object
 
     def __init__(self, pinA, pinB, callback):
@@ -39,19 +41,17 @@ class RotaryEncoder(object):
         GPIO.setup(self.pinA, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
         GPIO.setup(self.pinB, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
-
         # Add event detection to the GPIO inputs
         GPIO.add_event_detect(self.pinA, GPIO.RISING, callback=self.switch_event)
         GPIO.add_event_detect(self.pinB, GPIO.RISING, callback=self.switch_event)
 
-
     def setupButton(self, button):
-        GPIO.setup(self.button, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-        GPIO.add_event_detect(self.button, GPIO.RISING, callback=self.button_event, bouncetime=200)
+        GPIO.setup(button, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+        GPIO.add_event_detect(button, GPIO.RISING, callback=self.button_event, bouncetime=200)
 
         # Call back routine called by switch events
 
-
+    # noinspection PyUnusedLocal
     def switch_event(self, switch):
         if GPIO.input(self.pinA):
             self.rotary_a = 1
@@ -67,7 +67,7 @@ class RotaryEncoder(object):
         new_state = self.rotary_a * 4 + self.rotary_b * 2 + self.rotary_c * 1
         delta = (new_state - self.last_state) % 4
         # if delta > 0:
-        #print ("delta: " + str(delta))
+        # print ("delta: " + str(delta))
         self.last_state = new_state
         event = 0
 
@@ -92,11 +92,11 @@ class RotaryEncoder(object):
 
         # Push button up event
 
-
+    # noinspection PyUnusedLocal
     def button_event(self, button):
         # if GPIO.input(button):
         #	event = self.BUTTONUP
-        #else:
+        # else:
         #	event = self.BUTTONDOWN
         event = self.BUTTONDOWN
         self.callback(event)
@@ -104,10 +104,8 @@ class RotaryEncoder(object):
 
         # Get a switch state
 
-
-    def getSwitchState(self, switch):
+    @staticmethod
+    def getSwitchState(switch):
         return GPIO.input(switch)
 
-    # End of RotaryEncoder class
-
-
+        # End of RotaryEncoder class
