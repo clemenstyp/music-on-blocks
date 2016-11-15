@@ -36,7 +36,9 @@
       volume: {{ entry.volume }} <br>
       item: {{ entry.item }} <br>
       type: {{ entry.type }} <br>
-      playitems: {{ entry.playitems|default('-')||truncate(25, True)}} <br>
+      {% if entry.playitems %}
+      playitems: {{ entry.playitems|truncate(25, True)}} <br>
+      {% endif %}
       <a class="play-entry" href="{{ url_for('play_entry', entrieID=entry.id) }}">Play Item</a> |
       <a class="update-cache" href="{{ url_for('update_cache', entrieID=entry.id) }}">Update Item Cache</a>
       {% if session.logged_in %} |
