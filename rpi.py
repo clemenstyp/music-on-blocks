@@ -1,8 +1,8 @@
 import RPi.GPIO as GPIO
 from rotary_class import RotaryEncoder
 from ledPulse import LedPulse
-
-
+import logging
+logger = logging.getLogger('blocks')
 class RaspberryPi(object):
     # we are hopefully on an rPi, so init all gpio stuff
 
@@ -47,16 +47,16 @@ class RaspberryPi(object):
 
     def rotaryEventHandler(self, event):
         if event == RotaryEncoder.CLOCKWISE:
-            # print("Rotary CLOCKWISE")
+            logger.info("Rotary CLOCKWISE")
             self.rightRotaryTurn(event)
         elif event == RotaryEncoder.ANTICLOCKWISE:
-            # print("Rotary ANTICLOCKWISE")
+            logger.info("Rotary ANTICLOCKWISE")
             self.leftRotaryTurn(event)
         elif event == RotaryEncoder.BUTTONDOWN:
-            # print("Rotary Button down event")
+            logger.info("Rotary Button down event")
             self.rotaryTouch(event)
         elif event == RotaryEncoder.BUTTONUP:
-            print("Rotary Button up event")
+            logger.info("Rotary Button up event")
 
     def startOnePulseLed(self):
         try:
@@ -109,7 +109,7 @@ class RaspberryPi(object):
             GPIO.add_event_detect(self.BUTTON_SHUFFLE, GPIO.RISING, callback=toggleShuffle, bouncetime=200)
 
         if self.ROTARY_1 != self.NOGPIO & self.ROTARY_2 != self.NOGPIO:
-            print("Rotary found")
+            logger.info("Rotary found")
             encoder = RotaryEncoder(self.ROTARY_1, self.ROTARY_2, self.rotaryEventHandler)
             if self.ROTARY_BUTTON != self.NOGPIO:
                 encoder.setupButton(self.ROTARY_BUTTON)
@@ -123,22 +123,22 @@ class RaspberryPi(object):
         if self.readerType == 'pn532':
             import nfc
             # pn532_uart:/dev/ttyAMA0
-            print("Setting up reader...")
+            logger.info("Setting up reader...")
             self.reader = nfc.ContactlessFrontend('tty:AMA0:pn53x')
-            print(self.reader)
-            print("Ready!")
-            print("")
+            logger.info(self.reader)
+            logger.info("Ready!")
+            logger.info("")
 
         elif self.readerType == 'MFRC522':
             import MFRC522
 
-            print("Setting up reader...")
+            logger.info("Setting up reader...")
             # Create an object of the class MFRC522
             self.MIFAREReader = MFRC522.MFRC522()
 
             # Welcome message
-            print("Welcome to the MFRC522 data read example")
-            print("Press Ctrl-C to stop.")
+            logger.info("Welcome to the MFRC522 data read example")
+            logger.info("Press Ctrl-C to stop.")
 
             self.lastTagUid = 'stop'
             self.oldStatus = 0
@@ -147,9 +147,9 @@ class RaspberryPi(object):
     def readNFC(self, touchCallback, releaseCallback):
         if self.readerType == 'pn532':
             self.reader.connect(rdwr={'on-connect': touchCallback})
-            print("Tag released")
+            logger.info("Tag released")
             releaseCallback()
-            print("")
+            logger.info("")
             from time import sleep
             sleep(0.1)
 
@@ -168,7 +168,7 @@ class RaspberryPi(object):
                     self.lastTagUid = tagUid
             elif self.oldStatus == status:
                 # else:
-                # print ("No Card detected")
+                # logger.info ("No Card detected")
                 if self.lastTagUid != 'stop':
                     releaseCallback()
                     self.lastTagUid = 'stop'
@@ -178,7 +178,7 @@ class RaspberryPi(object):
     # Capture SIGINT for cleanup when the script is aborted
     # noinspection PyUnusedLocal
     def end_read(self, signal, frame):
-        print("Ctrl+C captured, ending read.")
+        logger.info("Ctrl+C captured, ending read.")
         GPIO.cleanup()
 
         # Hook the SIGINT

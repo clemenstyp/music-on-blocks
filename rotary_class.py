@@ -11,7 +11,8 @@
 #
 
 import RPi.GPIO as GPIO
-
+import logging
+logger = logging.getLogger('blocks')
 
 # noinspection PyPep8Naming,PyPep8Naming,PyPep8Naming,PyPep8Naming
 class RotaryEncoder(object):
@@ -67,7 +68,7 @@ class RotaryEncoder(object):
         new_state = self.rotary_a * 4 + self.rotary_b * 2 + self.rotary_c * 1
         delta = (new_state - self.last_state) % 4
         # if delta > 0:
-        # print ("delta: " + str(delta))
+        # logger.info("delta: " + str(delta))
         self.last_state = new_state
         event = 0
 

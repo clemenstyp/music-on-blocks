@@ -5,11 +5,31 @@ import os
 import sqlite3
 # noinspection PyCompatibility
 import thread
-
+import logging
+import logging.handlers
 from flask import Flask, request, session, g, redirect, url_for, abort, \
-    render_template, flash
+    render_template, flash, Response
 
 from sonosController import SonosController
+
+LOG_FILENAME = 'blocks.log'
+
+#logging.basicConfig(filename=LOG_FILENAME,level=logging.DEBUG)
+logging.basicConfig(format='%(asctime)s %(message)s')
+
+# Set up a specific logger with our desired output level
+logger = logging.getLogger('blocks')
+logger.setLevel(logging.DEBUG)
+
+# Add the log message handler to the logger
+handler = logging.handlers.RotatingFileHandler(LOG_FILENAME, maxBytes=2*1024*1024, backupCount=5)
+
+# create a logging format
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+handler.setFormatter(formatter)
+
+logger.addHandler(handler)
+
 
 app = Flask(__name__)
 
@@ -63,7 +83,7 @@ def init_db():
 def initdb_command():
     """Initializes the database."""
     init_db()
-    print('Initialized the database.')
+    logger.info('Initialized the database.')
 
 
 def query_db(query, args=(), one=False):
@@ -75,7 +95,7 @@ def query_db(query, args=(), one=False):
 
 if not os.path.exists(app.config['DATABASE']):
     init_db()
-    print('Initialized the database.')
+    logger.info('Initialized the database.')
 
 
 # commen commands
@@ -84,7 +104,7 @@ def startOneLedPulse():
     if raspberryPi:
         raspberryPi.startOnePulseLed()
     else:
-        print("one LED pulse")
+        logger.info("one LED pulse")
 
 
 def touchCallback(aHexTag):
@@ -205,7 +225,7 @@ def touchedTag(aTag):
         startOneLedPulse()
         mySonosController.play(entry)
     else:
-        print('no entry found')
+        logger.info('no entry found')
 
 
 # flask web views
@@ -227,6 +247,7 @@ def update_cache(entrieID):
         db = get_db()
         db.execute("UPDATE entries SET playitems = ? WHERE id = ?", [playitems, entrieID])
         db.commit()
+        # noinspection PyTypeChecker
         flash('Updated cache for "' + entry['title'] + '"')
 
     return redirect(url_for('show_entries'))
@@ -273,6 +294,7 @@ def play_entry(entrieID):
         startOneLedPulse()
         # Look up the song to play and set the right volume depending on whether it's day or night
         mySonosController.play(entry)
+        # noinspection PyTypeChecker
         flash('Playing entry "' + entry['title'] + '"')
 
     return redirect(url_for('show_entries'))
@@ -291,6 +313,7 @@ def write_entry(entrieID):
             db = get_db()
             db.execute("UPDATE entries SET tag_id = ? WHERE id = ?", [lastTag, entrieID])
             db.commit()
+            # noinspection PyTypeChecker
             flash('Updated tag id for "' + entry['title'] + '" to "' + lastTag + '"')
         else:
             flash('no tag found')
@@ -313,6 +336,28 @@ def login():
     return render_template('login.html', error=error)
 
 
+def get_file(filename):  # pragma: no cover
+    try:
+        src = os.path.join(app.root_path, filename)
+        # Figure out how flask returns static files
+        # Tried:
+        # - render_template
+        # - send_file
+        # This should not be so non-obvious
+        return open(src).read()
+    except IOError as exc:
+        return str(exc)
+
+@app.route('/log')
+def log():
+    src = os.path.join(app.root_path, LOG_FILENAME)
+    try:
+        log = get_file(src)
+        return Response(log, mimetype="text/plain")
+    except Exception as e:
+        return str(e)
+
+
 @app.route('/logout')
 def logout():
     session.pop('logged_in', None)
@@ -323,7 +368,7 @@ def logout():
 try:
     thread.start_new_thread(startSonos, ())
 except:
-    print("Error: unable to start thread")
+    logger.info("Error: unable to start thread")
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8080, debug=False)
