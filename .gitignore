@@ -3,6 +3,7 @@ settings.py
 old_Data/
 songs.db
 .idea/
+blocks.log.*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
