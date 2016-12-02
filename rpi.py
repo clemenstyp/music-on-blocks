@@ -29,7 +29,7 @@ class RaspberryPi(object):
 
     BUTTON_PLAY = NOGPIO
     BUTTON_PAUSE = NOGPIO
-    BUTTON_PLAYPAUSE = GP_7
+    BUTTON_PLAYPAUSE = NOGPIO # GP_7 damit ist playpause abgeschaltet
     BUTTON_NEXT = GP_0
     BUTTON_PREV = GP_1
     BUTTON_UNJOIN = GP_2
