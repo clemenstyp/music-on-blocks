@@ -206,12 +206,12 @@ def toggleShuffle(event):
 
 # noinspection PyUnusedLocal
 def leftRotaryTurn(event):
-    mySonosController.volumeUp(-1)
+    mySonosController.volumeUp(-3)
 
 
 # noinspection PyUnusedLocal
 def rightRotaryTurn(event):
-    mySonosController.volumeUp(1)
+    mySonosController.volumeUp(3)
 
 
 # noinspection PyArgumentList,PyUnusedLocal
