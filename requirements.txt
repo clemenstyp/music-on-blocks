@@ -1,4 +1,4 @@
 Flask
 soco
 spi
-serial
+pyserial

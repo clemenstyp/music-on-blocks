@@ -35,7 +35,9 @@ change into the application folder
 
 The Aplication depends on several external libraries. The easiest way to install everything is by running the following command:
 
-`pip install -r requirements.txt`
+`pip install -r requirements.txt --upgrade`
+
+oder mit sudo
 
 But for the led you'll have to install pigpio: http://abyz.co.uk/rpi/pigpio/download.html
 
@@ -53,6 +55,10 @@ Once all dependanices have been installed, rename `settings.py.example` to `sett
 Run `python startBlocks.py` to start the application. Then open up a web browser and visit [http://raspberryPi:8080](http://raspberryPi:8080).
 
 You can also use the startScript.sh, or call it from /etc/rc.local 
+
+##todo:
+im rotary habe ich bei mir den pull up auf ein pull down geändert (oder andersrum - daher funktioniert der rotery nicht richtig) - den rotary konfigurierbar machen, damit der auch beim johannes läuft. 
+
 
 ## License
 

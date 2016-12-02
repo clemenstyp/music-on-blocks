@@ -9,14 +9,14 @@ class RaspberryPi(object):
     GPIO.setmode(GPIO.BOARD)
     # GPIO.setwarnings(False)
 
-    # GP_6 = 22  #von Clemens NFC verwendet
+
     # GPIOS = Board Number
     GP_0 = 11
     GP_1 = 12
-    GP_2 = 13  # nummer 2 auf johannes seiner Box
+    GP_2 = 13
     GP_3 = 15
     GP_4 = 16
-    GP_5 = 18  # nummer 1 auf Johannes seiner Box
+    GP_5 = 18
     GP_7 = 7
     SDA = 3
     SCL = 5
@@ -37,8 +37,8 @@ class RaspberryPi(object):
     BUTTON_VOL_DOWN = NOGPIO
     BUTTON_SHUFFLE = GP_5
 
-    ROTARY_1 = GP_4
-    ROTARY_2 = GP_3
+    ROTARY_1 = GP_3  # GP_4 war das bei Clemens
+    ROTARY_2 = GP_4  # GP_3 war das bei Clemens
     ROTARY_BUTTON = NOGPIO
 
     rightRotaryTurn = None
