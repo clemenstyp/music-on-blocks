@@ -34,7 +34,10 @@ class SonosController(object):
 
         # Sonos setup
         logger.info("Connecting to Sonos...")
-        self.sonosDevice = SoCo(sonos_ip)
+        #device = SoCo.discovery.any_soco()
+        #self.sonosDevice = device.group.coordinator
+        device = SoCo(sonos_ip)
+        self.sonosDevice = device.group.coordinator
         logger.info("Connected to Sonos: " + self.sonosDevice.player_name)
 
         # Use this section to get the URIs of new songs we want to add
@@ -143,7 +146,7 @@ class SonosController(object):
             try:
                 self.sonosDevice.add_to_queue(item)
             except:
-                logger.info("  error adding...")
+                logger.info("  error adding...: " + sys.exc_info()[0])
             if startPlaying == False:
                 try:
                     startPlaying = self.sonosDevice.play_from_queue(0, start=True)

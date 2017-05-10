@@ -40,18 +40,14 @@ app.config.update(dict(
 
 raspberryPi = None
 mySonosController = None
-
 lastTag = None
 
-
 # database stuff
-
 def connect_db():
     """Connects to the specific database."""
     rv = sqlite3.connect(app.config['DATABASE'])
     rv.row_factory = sqlite3.Row
     return rv
-
 
 def get_db():
     """Opens a new database connection if there is none yet for the
@@ -238,7 +234,6 @@ def show_entries():
 
 @app.route('/update/<entrieID>')
 def update_cache(entrieID):
-    flash('caching currently not possible')
     entry = query_db('select * from entries where id = ?', [entrieID], one=True)
     if entry is None:
         flash('nothing found, try again')
