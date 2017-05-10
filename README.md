@@ -73,7 +73,7 @@ Once all dependanices have been installed, rename `settings.py.example` to `sett
 
 
 ## Basic Usage
-Run `python startBlocks.py` to start the application. Then open up a web browser and visit [http://raspberryPi](http://raspberryPi).
+Run `python startBlocks.py` to start the application. Then open up a web browser and visit [http://raspberryPi:8080](http://raspberryPi:8080).
 
 You can also use the startScript.sh, or call it from /etc/rc.local 
 
