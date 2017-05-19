@@ -1,4 +1,6 @@
+# install all with: pip install -r requirements.txt --upgrade
 Flask
 soco
 spi
 pyserial
+nfcpy

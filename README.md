@@ -38,6 +38,12 @@ python setup.py install
 
 ```
 
+If you use the Adafruit PN532, you'll have to install nfcpy and have to blacklist the kernel driver:
+
+```
+echo "blacklist pn532" | sudo tee -a /etc/modprobe.d/blacklist-nfc.conf
+```
+
 ### Install the LED stuff
 The LED needs pigpio to correct fading. 
 Pigpio: http://abyz.co.uk/rpi/pigpio/download.html
