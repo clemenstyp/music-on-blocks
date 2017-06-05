@@ -13,16 +13,16 @@ class NFC_PN532:
         self.logger.info("Setting up reader...")
         with nfc.ContactlessFrontend('tty:AMA0:pn532') as aReader:
             self.reader = aReader
-        self.logger.info("print reader:")
-        self.logger.info(self.reader)
         self.logger.info("Ready!")
         self.logger.info("")
 
 
 
     def read(self):
-        tag = self.reader.connect(rdwr={'on-connect': lambda tag: False})
-        return str(tag.identifier).encode("hex")
+        with nfc.ContactlessFrontend('tty:AMA0:pn532') as aReader:
+            tag = aReader.connect(rdwr={'on-connect': lambda tag: False})
+            return str(tag.identifier).encode("hex")
+        return None
 
 
 
