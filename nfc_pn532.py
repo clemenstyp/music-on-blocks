@@ -11,7 +11,8 @@ class NFC_PN532:
         self.logger = logging.getLogger('blocks')
         # pn532_uart:/dev/ttyAMA0
         self.logger.info("Setting up reader...")
-        self.reader = nfc.ContactlessFrontend('tty:AMA0:pn532')
+        with nfc.ContactlessFrontend('tty:AMA0:pn532') as aReader:
+            self.reader = aReader
         self.logger.info("print reader:")
         self.logger.info(self.reader)
         self.logger.info("Ready!")
