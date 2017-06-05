@@ -38,11 +38,22 @@ python setup.py install
 
 ```
 
-If you use the Adafruit PN532, you'll have to install nfcpy and have to blacklist the kernel driver:
+If you use the Adafruit PN532 follow this tutorial and install all driver:
+
+https://learn.adafruit.com/adafruit-nfc-rfid-on-raspberry-pi?view=all
+
+
+you'll have to install nfcpy and have to blacklist the kernel driver:
 
 ```
 echo "blacklist pn532" | sudo tee -a /etc/modprobe.d/blacklist-nfc.conf
 ```
+
+and install the following:
+
+https://www.webnist.de/pn532-nfc-modul-am-uart-eines-raspberry-pi-anschliessen/
+
+https://github.com/xantares/nfc-bindings
 
 ### Install the LED stuff
 The LED needs pigpio to correct fading. 

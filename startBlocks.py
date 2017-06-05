@@ -103,10 +103,10 @@ def startOneLedPulse():
         logger.info("one LED pulse")
 
 
-def touchCallback(aHexTag):
+def touchCallback(aTag):
     with app.app_context():
         # within this block, current_app points to app.
-        aTag = str(aHexTag).encode("hex")  # get the UID of the touched tag
+        #aTag = str(aHexTag).encode("hex")  # get the UID of the touched tag
         global lastTag
         lastTag = aTag
         touchedTag(aTag)

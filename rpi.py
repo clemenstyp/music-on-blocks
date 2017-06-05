@@ -3,6 +3,9 @@ from rotary_class import RotaryEncoder
 from ledPulse import LedPulse
 import logging
 logger = logging.getLogger('blocks')
+import nfc_Reader
+
+
 class RaspberryPi(object):
     # we are hopefully on an rPi, so init all gpio stuff
 
@@ -69,7 +72,6 @@ class RaspberryPi(object):
         self.rightRotaryTurn = rightRotaryTurn
         self.leftRotaryTurn = leftRotaryTurn
         self.rotaryTouch = rotaryTouch
-        self.readerType = readerType
 
         # set all gpios
         if not self.BUTTON_PAUSE == self.NOGPIO:
@@ -120,60 +122,19 @@ class RaspberryPi(object):
             self.ledPulse.startPulseLedForSeconds(10)
             # ledPulse.startPulseLed()
 
-        if self.readerType == 'pn532':
-            import nfc
-            # pn532_uart:/dev/ttyAMA0
-            logger.info("Setting up reader...")
-            self.reader = nfc.ContactlessFrontend('tty:AMA0:pn53x')
-            logger.info(self.reader)
-            logger.info("Ready!")
-            logger.info("")
-
-        elif self.readerType == 'MFRC522':
-            import MFRC522
-
-            logger.info("Setting up reader...")
-            # Create an object of the class MFRC522
-            self.MIFAREReader = MFRC522.MFRC522()
-
-            # Welcome message
-            logger.info("Welcome to the MFRC522 data read example")
-            logger.info("Press Ctrl-C to stop.")
-
-            self.lastTagUid = 'stop'
-            self.oldStatus = 0
-            # This loop keeps checking for chips. If one is near it will get the UID and authenticate
+        self.reader = nfc_Reader.NFC_READER()
+        self.reader.startReader(readerType)
 
     def readNFC(self, touchCallback, releaseCallback):
-        if self.readerType == 'pn532':
-            self.reader.connect(rdwr={'on-connect': touchCallback})
-            logger.info("Tag released")
-            releaseCallback()
-            logger.info("")
-            from time import sleep
-            sleep(0.1)
+        tagUid = self.reader.readNFC()
+        if self.lastTagUid != tagUid:
+            self.lastTagUid = tagUid
+            if tagUid is None:
+                releaseCallback()
+            else:
+                touchCallback(tagUid)
 
-        elif self.readerType == 'MFRC522':
-            # Scan for cards
-            # noinspection PyUnusedLocal,PyUnusedLocal
-            (status, TagType) = self.MIFAREReader.MFRC522_Request(self.MIFAREReader.PICC_REQIDL)
-            # If a card is found
-            # Get the UID of the card
-            (status, uid) = self.MIFAREReader.MFRC522_Anticoll()
-            # If we have the UID, continue
-            if status == self.MIFAREReader.MI_OK:
-                tagUid = str(uid).encode("hex")  # get the UID of the touched tag
-                if self.lastTagUid != tagUid:
-                    touchCallback(uid)
-                    self.lastTagUid = tagUid
-            elif self.oldStatus == status:
-                # else:
-                # logger.info ("No Card detected")
-                if self.lastTagUid != 'stop':
-                    releaseCallback()
-                    self.lastTagUid = 'stop'
-            self.oldStatus = status
-            # sleep(0.1);
+
 
     # Capture SIGINT for cleanup when the script is aborted
     # noinspection PyUnusedLocal
