@@ -72,7 +72,7 @@ class RaspberryPi(object):
         self.rightRotaryTurn = rightRotaryTurn
         self.leftRotaryTurn = leftRotaryTurn
         self.rotaryTouch = rotaryTouch
-
+        self.lastTagUid = None
         # set all gpios
         if not self.BUTTON_PAUSE == self.NOGPIO:
             GPIO.setup(self.BUTTON_PAUSE, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
