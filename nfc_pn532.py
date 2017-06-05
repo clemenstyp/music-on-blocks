@@ -5,7 +5,6 @@
 
 import logging
 import nfc
-from nfc.clf import RemoteTarget
 
 class NFC_PN532:
     def __init__(self):
@@ -20,9 +19,6 @@ class NFC_PN532:
 
 
     def read(self):
-        #target = self.reader.sense(RemoteTarget('106A'), RemoteTarget('106B'), RemoteTarget('212F'))
-        #tag = nfc.tag.activate(self.reader, target)
-        #print(tag)
         tag = self.reader.connect(rdwr={'on-connect': lambda tag: False})
         return str(tag.identifier).encode("hex")
 
