@@ -15,3 +15,4 @@ DATABASE_NAME = 'songs.db'
 SECRET_KEY='SECRET_KEY' #The SECRET_KEY is needed to keep the client-side sessions secure. Choose that key wisely and as hard to guess and complex as possible.
 USERNAME='admin'
 PASSWORD='admin'
+LOG_TO_CONSOLE = True

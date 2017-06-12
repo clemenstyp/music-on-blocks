@@ -1,6 +1,9 @@
-# install all with: pip install -r requirements.txt --upgrade
-Flask
+# install all with: sudo pip install -r requirements.txt --upgrade
+# or by calling: pip install --user -r requirements.txt
 soco
 spi
 pyserial
 nfcpy
+Flask
+flask-bootstrap
+flask-nav

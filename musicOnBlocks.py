@@ -1,42 +1,72 @@
 #!/usr/bin/env python
 from __future__ import print_function
 
+
 import os
 import sqlite3
+import errno
+from backend.MusicLogging import MusicLogging
+
+
 # noinspection PyCompatibility
 import thread
-import logging
-import logging.handlers
+
+
 from flask import Flask, request, session, g, redirect, url_for, abort, \
     render_template, flash, Response
+from flask_nav import Nav
+from flask_nav.elements import Navbar, View, Subgroup, Link, Text, Separator
+from flask_bootstrap import Bootstrap
 
-from sonosController import SonosController
+from backend.sonosController import SonosController
 
-LOG_FILENAME = 'blocks.log'
+import subprocess
 
-#logging.basicConfig(filename=LOG_FILENAME,level=logging.DEBUG)
-logging.basicConfig(format='%(asctime)s %(message)s')
+def get_git_revision_hash():
+    return subprocess.check_output(['git', 'rev-parse', 'HEAD'])
 
-# Set up a specific logger with our desired output level
-logger = logging.getLogger('blocks')
-logger.setLevel(logging.DEBUG)
-
-# Add the log message handler to the logger
-handler = logging.handlers.RotatingFileHandler(LOG_FILENAME, maxBytes=2*1024*1024, backupCount=5)
-
-# create a logging format
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-handler.setFormatter(formatter)
-
-logger.addHandler(handler)
-
+def get_git_revision_short_hash():
+    return subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD'])
 
 app = Flask(__name__)
-
 app.config.from_pyfile('settings.py')
 app.config.update(dict(
     DATABASE=os.path.join(app.root_path, app.config['DATABASE_NAME']),
 ))
+
+# We're adding a navbar as well through flask-navbar. In our example, the
+# navbar has an usual amount of Link-Elements, more commonly you will have a
+# lot more View instances.
+nav = Nav()
+nav.register_element('frontend_top', Navbar(
+    View('Paradise Gateway', 'WebApi:index'),
+    View('Home', 'WebApi:index'),
+    View('Api Documentation', 'WebApi:docu'),
+    View('Debug-Info', 'DebugApi:index'),
+    View('Time Log', 'DebugApi:showTimeLog'),
+    View('Full Log', 'DebugApi:showLog'),
+    # Subgroup(
+    #     'Docs',
+    #     Link('Flask-Bootstrap', 'http://pythonhosted.org/Flask-Bootstrap'),
+    #     Link('Flask-AppConfig', 'https://github.com/mbr/flask-appconfig'),
+    #     Link('Flask-Debug', 'https://github.com/mbr/flask-debug'),
+    #     Separator(),
+    #     Text('Bootstrap'),
+    #     Link('Getting started', 'http://getbootstrap.com/getting-started/'),
+    #     Link('CSS', 'http://getbootstrap.com/css/'),
+    #     Link('Components', 'http://getbootstrap.com/components/'),
+    #     Link('Javascript', 'http://getbootstrap.com/javascript/'),
+    #     Link('Customize', 'http://getbootstrap.com/customize/'), ),
+    Text('Current GIT Hash: {}'.format(get_git_revision_short_hash())), ))
+
+# webapp endpoint
+Bootstrap(app)
+nav.init_app(app)
+
+# Because we're security-conscious developers, we also hard-code disabling
+# the CDN support (this might become a default in later versions):
+app.config['BOOTSTRAP_SERVE_LOCAL'] = True
+
 
 raspberryPi = None
 mySonosController = None
@@ -79,7 +109,7 @@ def init_db():
 def initdb_command():
     """Initializes the database."""
     init_db()
-    logger.info('Initialized the database.')
+    MusicLogging.Instance().info('Initialized the database.')
 
 
 def query_db(query, args=(), one=False):
@@ -91,7 +121,7 @@ def query_db(query, args=(), one=False):
 
 if not os.path.exists(app.config['DATABASE']):
     init_db()
-    logger.info('Initialized the database.')
+    MusicLogging.Instance().info('Initialized the database.')
 
 
 # commen commands
@@ -100,7 +130,7 @@ def startOneLedPulse():
     if raspberryPi:
         raspberryPi.startOnePulseLed()
     else:
-        logger.info("one LED pulse")
+        MusicLogging.Instance().info("one LED pulse")
 
 
 def touchCallback(aTag):
@@ -135,7 +165,7 @@ def startSonos():
     mySonosController.startSonos(app.config['SONOS_IP'])
 
     if not app.config['RPI_DEMO']:
-        from rpi import RaspberryPi
+        from backend.rpi import RaspberryPi
         raspberryPi = RaspberryPi(app.config['NFC_READER'], pause, play, togglePlayPause, toggleNext, togglePrev,
                                   toggleUnjoin, toggleVolUp, toggleVolDown, toggleShuffle, rightRotaryTurn,
                                   leftRotaryTurn, rotaryTouch)
@@ -221,7 +251,7 @@ def touchedTag(aTag):
         startOneLedPulse()
         mySonosController.play(entry)
     else:
-        logger.info('no entry found')
+        MusicLogging.Instance().info('no entry found')
 
 
 # flask web views
@@ -363,7 +393,7 @@ def logout():
 try:
     thread.start_new_thread(startSonos, ())
 except:
-    logger.info("Error: unable to start thread")
+    MusicLogging.Instance().info("Error: unable to start thread")
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8080, debug=False)

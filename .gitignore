@@ -1,7 +1,7 @@
 #settings file
 settings.py
 old_Data/
-songs.db
+backend/songs.db
 .idea/
 blocks.log.*
 

@@ -1,9 +1,12 @@
 import RPi.GPIO as GPIO
+
+
+from backend.ledPulse import LedPulse
 from rotary_class import RotaryEncoder
-from ledPulse import LedPulse
-import logging
-logger = logging.getLogger('blocks')
-import nfc_Reader
+
+from MusicLogging import MusicLogging
+
+from backend import nfc_Reader
 
 
 class RaspberryPi(object):
@@ -50,16 +53,16 @@ class RaspberryPi(object):
 
     def rotaryEventHandler(self, event):
         if event == RotaryEncoder.CLOCKWISE:
-            logger.info("Rotary CLOCKWISE")
+            MusicLogging.Instance().info("Rotary CLOCKWISE")
             self.rightRotaryTurn(event)
         elif event == RotaryEncoder.ANTICLOCKWISE:
-            logger.info("Rotary ANTICLOCKWISE")
+            MusicLogging.Instance().info("Rotary ANTICLOCKWISE")
             self.leftRotaryTurn(event)
         elif event == RotaryEncoder.BUTTONDOWN:
-            logger.info("Rotary Button down event")
+            MusicLogging.Instance().info("Rotary Button down event")
             self.rotaryTouch(event)
         elif event == RotaryEncoder.BUTTONUP:
-            logger.info("Rotary Button up event")
+            MusicLogging.Instance().info("Rotary Button up event")
 
     def startOnePulseLed(self):
         try:
@@ -111,7 +114,7 @@ class RaspberryPi(object):
             GPIO.add_event_detect(self.BUTTON_SHUFFLE, GPIO.RISING, callback=toggleShuffle, bouncetime=200)
 
         if self.ROTARY_1 != self.NOGPIO & self.ROTARY_2 != self.NOGPIO:
-            logger.info("Rotary found")
+            MusicLogging.Instance().info("Rotary found")
             encoder = RotaryEncoder(self.ROTARY_1, self.ROTARY_2, self.rotaryEventHandler)
             if self.ROTARY_BUTTON != self.NOGPIO:
                 encoder.setupButton(self.ROTARY_BUTTON)
@@ -139,7 +142,7 @@ class RaspberryPi(object):
     # Capture SIGINT for cleanup when the script is aborted
     # noinspection PyUnusedLocal
     def end_read(self, signal, frame):
-        logger.info("Ctrl+C captured, ending read.")
+        MusicLogging.Instance().info("Ctrl+C captured, ending read.")
         GPIO.cleanup()
 
         # Hook the SIGINT
