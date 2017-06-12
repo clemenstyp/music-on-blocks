@@ -141,9 +141,9 @@ class RaspberryPi(object):
 
     # Capture SIGINT for cleanup when the script is aborted
     # noinspection PyUnusedLocal
-    def end_read(self, signal, frame):
-        MusicLogging.Instance().info("Ctrl+C captured, ending read.")
-        GPIO.cleanup()
+    def stopAll(self):
+        MusicLogging.Instance().info("Stopping RasPi")
 
-        # Hook the SIGINT
-        signal.signal(signal.SIGINT, self.end_read)
+        GPIO.cleanup()
+        self.reader.stopReader()
+

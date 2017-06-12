@@ -1,6 +1,6 @@
 
 from time import time
-
+from MusicLogging import MusicLogging
 
 class NFC_DEMO:
     lastTime = 0
@@ -16,5 +16,7 @@ class NFC_DEMO:
                 self.currentTag = 0
         return self.tags[self.currentTag]
 
+    def stop(self):
+        MusicLogging.Instance().info("stopping reader")
 
 

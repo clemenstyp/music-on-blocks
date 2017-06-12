@@ -21,6 +21,9 @@ from flask_bootstrap import Bootstrap
 from backend.sonosController import SonosController
 
 import subprocess
+import os
+
+os.system("sh pigpiod.sh")
 
 def get_git_revision_hash():
     return subprocess.check_output(['git', 'rev-parse', 'HEAD'])
@@ -39,12 +42,10 @@ app.config.update(dict(
 # lot more View instances.
 nav = Nav()
 nav.register_element('frontend_top', Navbar(
-    View('Paradise Gateway', 'WebApi:index'),
-    View('Home', 'WebApi:index'),
-    View('Api Documentation', 'WebApi:docu'),
-    View('Debug-Info', 'DebugApi:index'),
-    View('Time Log', 'DebugApi:showTimeLog'),
-    View('Full Log', 'DebugApi:showLog'),
+    View('Music on Blocks', 'index'),
+    View('Debug-Info', 'index'),
+    View('Time Log', 'index'),
+    View('Log', 'DebugApi:showLog'),
     # Subgroup(
     #     'Docs',
     #     Link('Flask-Bootstrap', 'http://pythonhosted.org/Flask-Bootstrap'),
@@ -100,7 +101,7 @@ def init_db():
     """Initializes the database."""
     with app.app_context():
         db = get_db()
-        with app.open_resource('schema.sql', mode='r') as f:
+        with app.open_resource('backend/schema.sql', mode='r') as f:
             db.cursor().executescript(f.read())
         db.commit()
 
@@ -394,6 +395,16 @@ try:
     thread.start_new_thread(startSonos, ())
 except:
     MusicLogging.Instance().info("Error: unable to start thread")
+
+import signal
+import sys
+def signal_handler(signal, frame):
+    MusicLogging.Instance().info('You pressed Ctrl+C!')
+    mySonosController.stopAll()
+    raspberryPi.stopAll()
+    sys.exit(0)
+
+signal.signal(signal.SIGINT, signal_handler)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8080, debug=False)

@@ -5,7 +5,11 @@ import os
 import errno
 
 from Singleton import Singleton
-import settings as Settings
+
+import sys
+sys.path.insert(0,'..')
+
+import settings as settings
 
 @Singleton
 class MusicLogging:
@@ -33,7 +37,7 @@ class MusicLogging:
         fileHandler.setFormatter(logging.Formatter(fmt=self.log_format, datefmt=self.date_format))
         self.logger.addHandler(fileHandler)
 
-        if Settings.LOG_TO_CONSOLE:
+        if settings.LOG_TO_CONSOLE:
             # create console handler and set level to debug
             consoleHandler = logging.StreamHandler()
             consoleHandler.setLevel(logging.DEBUG)

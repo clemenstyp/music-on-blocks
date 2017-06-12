@@ -31,7 +31,9 @@ class NFC_READER:
             self.logger.info("NFC Demo, no reader connected")
             self.reader = nfc_DEMO.NFC_DEMO()
 
-
+    def stopReader(self, type):
+        self.readerType = type
+        self.reader.stop()
 
 
     def readNFC(self):

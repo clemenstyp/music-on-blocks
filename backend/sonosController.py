@@ -47,6 +47,9 @@ class SonosController(object):
         MusicLogging.Instance().info("---")
         return True
 
+    def stopAll(self):
+        MusicLogging.Instance().info("Stopping Sonos")
+
     # def sonosData(self):
     #     # save song.tmp
     #     if os.path.isfile(self.settings + "/" + "1_songs" + ".txt"):
