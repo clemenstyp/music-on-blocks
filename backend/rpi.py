@@ -143,7 +143,7 @@ class RaspberryPi(object):
     # noinspection PyUnusedLocal
     def stopAll(self):
         MusicLogging.Instance().info("Stopping RasPi")
-
-        GPIO.cleanup()
         self.reader.stopReader()
+        GPIO.cleanup()
+
 

@@ -23,6 +23,7 @@ from backend.sonosController import SonosController
 import subprocess
 import os
 
+
 os.system("sh pigpiod.sh")
 
 def get_git_revision_hash():
@@ -43,9 +44,9 @@ app.config.update(dict(
 nav = Nav()
 nav.register_element('frontend_top', Navbar(
     View('Music on Blocks', 'index'),
-    View('Debug-Info', 'index'),
-    View('Time Log', 'index'),
-    View('Log', 'DebugApi:showLog'),
+    View('Tags', 'tags'),
+    View('Settings', 'settings'),
+    View('Debug', 'debug'),
     # Subgroup(
     #     'Docs',
     #     Link('Flask-Bootstrap', 'http://pythonhosted.org/Flask-Bootstrap'),
@@ -66,7 +67,7 @@ nav.init_app(app)
 
 # Because we're security-conscious developers, we also hard-code disabling
 # the CDN support (this might become a default in later versions):
-app.config['BOOTSTRAP_SERVE_LOCAL'] = True
+app.config['BOOTSTRAP_SERVE_LOCAL'] = False
 
 
 raspberryPi = None
@@ -112,6 +113,8 @@ def initdb_command():
     init_db()
     MusicLogging.Instance().info('Initialized the database.')
 
+#once init the db
+#init_db()
 
 def query_db(query, args=(), one=False):
     cur = get_db().execute(query, args)
@@ -258,9 +261,13 @@ def touchedTag(aTag):
 # flask web views
 
 @app.route('/')
-def show_entries():
+def index():
+    return render_template('content.html', content="Music-On-Blocks")
+
+@app.route('/tags')
+def tags():
     entries = query_db('select * from entries order by id desc')
-    return render_template('show_entries.html', entries=entries)
+    return render_template('content-entries.html', contentArray=entries)
 
 
 @app.route('/update/<entrieID>')
@@ -276,7 +283,7 @@ def update_cache(entrieID):
         # noinspection PyTypeChecker
         flash('Updated cache for "' + entry['title'] + '"')
 
-    return redirect(url_for('show_entries'))
+    return redirect(url_for('tags'))
 
 
 @app.route('/add', methods=['POST'])
@@ -296,7 +303,34 @@ def add_entry():
         [title, comment, tag_id, time_offset, volume, item, itemType])
     db.commit()
     flash('New entry was successfully posted')
-    return redirect(url_for('show_entries'))
+    return redirect(url_for('tags'))
+
+
+@app.route('/save/<entrieID>', methods=['POST'])
+def save_entry(entrieID):
+    if not session.get('logged_in'):
+        abort(401)
+    entry = query_db('select * from entries where id = ?', [entrieID], one=True)
+    if entry is None:
+        flash('nothing found, try again')
+    else:
+        title = request.form['title']
+        comment = request.form['comment']
+        tag_id = request.form['tag_id']
+        time_offset = request.form['time_offset']
+        volume = request.form['volume']
+        item = request.form['item']
+        itemType = request.form['type']
+
+        db = get_db()
+        db.execute(
+            'UPDATE entries SET title = ? comment = ? tag_id = ? time_offset = ? volume = ? item = ? type = ? WHERE id = ?',
+            [title, comment, tag_id, time_offset, volume, item, itemType, entrieID])
+        db.commit()
+        # noinspection PyTypeChecker
+        flash('Updated entrie with id "' + entrieID + '"')
+
+    return redirect(url_for('tags'))
 
 
 @app.route('/remove/<entrieID>')
@@ -307,7 +341,7 @@ def remove_entry(entrieID):
     db.execute('DELETE FROM entries WHERE id=?', [entrieID])
     db.commit()
     flash('New entry was successfully removed')
-    return redirect(url_for('show_entries'))
+    return redirect(url_for('tags'))
 
 
 @app.route('/play/<entrieID>')
@@ -323,7 +357,7 @@ def play_entry(entrieID):
         # noinspection PyTypeChecker
         flash('Playing entry "' + entry['title'] + '"')
 
-    return redirect(url_for('show_entries'))
+    return redirect(url_for('tags'))
 
 
 @app.route('/write/<entrieID>')
@@ -344,7 +378,7 @@ def write_entry(entrieID):
         else:
             flash('no tag found')
 
-    return redirect(url_for('show_entries'))
+    return redirect(url_for('tags'))
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -358,8 +392,9 @@ def login():
         else:
             session['logged_in'] = True
             flash('You were logged in')
-            return redirect(url_for('show_entries'))
-    return render_template('login.html', error=error)
+            return redirect(url_for('tags'))
+    #return render_template('login.html', error=error)
+    return render_template('content-login.html', error=error)
 
 
 def get_file(filename):  # pragma: no cover
@@ -374,9 +409,13 @@ def get_file(filename):  # pragma: no cover
     except IOError as exc:
         return str(exc)
 
-@app.route('/log')
-def log():
-    src = os.path.join(app.root_path, LOG_FILENAME)
+@app.route('/settings')
+def settings():
+    return render_template('content.html', content="Settings", buttonTitle="Login", buttonLink=url_for('login'), buttonTitle2="Logout", buttonLink2=url_for('logout'))
+
+@app.route('/debug')
+def debug():
+    src = os.path.join(app.root_path, MusicLogging.Instance().filename())
     try:
         log = get_file(src)
         return Response(log, mimetype="text/plain")
@@ -388,7 +427,7 @@ def log():
 def logout():
     session.pop('logged_in', None)
     flash('You were logged out')
-    return redirect(url_for('show_entries'))
+    return redirect(url_for('index'))
 
 
 try:
@@ -407,4 +446,4 @@ def signal_handler(signal, frame):
 signal.signal(signal.SIGINT, signal_handler)
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8080, debug=False)
+    app.run(host='0.0.0.0', port=8080, debug=True)

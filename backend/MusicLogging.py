@@ -55,3 +55,5 @@ class MusicLogging:
     def error(self, logMessage):
         self.logger.error(logMessage)
 
+    def filename(self):
+        return 'log/blocks.log'

@@ -1,0 +1,62 @@
+{# This simple template derives from ``base.html``. See ``base.html`` for
+   more information about template inheritance. #}
+{%- extends "base.html" %}
+
+{# Loads some of the macros included with Flask-Bootstrap. We are using the
+   utils module here to automatically render Flask's flashed messages in a
+   bootstrap friendly manner #}
+{% import "bootstrap/utils.html" as utils %}
+
+
+{# Inside the ``content`` is where you should place most of your own stuff.
+   This will keep scripts at the page end and a navbar you add on later
+   intact. #}
+{% block content %}
+  <div class="container">
+  {%- with messages = get_flashed_messages(with_categories=True) %}
+  {%- if messages %}
+    <div class="row">
+
+        {{utils.flashed_messages(messages)}}
+
+    </div>
+  {%- endif %}
+  {%- endwith %}
+
+
+    <div class="jumbotron">
+        {%- if headline %}
+            <h1>{{headline}}</h1>
+        {%- endif %}
+
+        {%- if content %}
+            <p>{{content}}</p>
+        {%- endif %}
+
+        {%- if contentArray %}
+            {% for contentElement in contentArray %}
+                <p>{{ contentElement}}</p>
+            {% endfor %}
+        {%- endif %}
+
+        {%- if buttonTitle %}
+            {%- if buttonLink %}
+                <p>
+                    <a class="btn btn-lg btn-default" role="button" href="{{ buttonLink }}" >{{ buttonTitle }}</a>
+                </p>
+            {%- endif %}
+        {%- endif %}
+
+        {%- if buttonTitle2 %}
+            {%- if buttonLink2 %}
+                <p>
+                    <a class="btn btn-lg btn-default" role="button" href="{{ buttonLink2 }}" >{{ buttonTitle2 }}</a>
+                </p>
+            {%- endif %}
+        {%- endif %}
+
+
+
+    </div>
+   </div>
+{%- endblock %}

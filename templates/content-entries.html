@@ -1,0 +1,199 @@
+{# This simple template derives from ``base.html``. See ``base.html`` for
+   more information about template inheritance. #}
+{%- extends "base.html" %}
+
+{# Loads some of the macros included with Flask-Bootstrap. We are using the
+   utils module here to automatically render Flask's flashed messages in a
+   bootstrap friendly manner #}
+{% import "bootstrap/utils.html" as utils %}
+
+
+{# Inside the ``content`` is where you should place most of your own stuff.
+   This will keep scripts at the page end and a navbar you add on later
+   intact. #}
+{% block content %}
+    <div class="container">
+        {%- with messages = get_flashed_messages(with_categories=True) %}
+            {%- if messages %}
+                <div class="row">
+
+                    {{ utils.flashed_messages(messages) }}
+
+                </div>
+            {%- endif %}
+        {%- endwith %}
+
+
+        <div class="jumbotron">
+
+            {%- if contentArray %}
+
+                <table class="table table-striped">
+
+                <thead>
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Title</th>
+                    <th scope="col">Type</th>
+                    <th scope="col">Item</th>
+                    <th scope="col">Edit</th>
+                </tr>
+                </thead>
+                <tbody>
+
+
+                {% for entry in contentArray %}
+
+                    <tr>
+                        <th scope="row">{{ loop.index }}</th>
+
+                        <td>{{ entry.title }}</td>
+                        <td>{{ entry.type }}</td>
+                        <td>{{ entry.item }}</td>
+                        <td>
+                             <a class="btn btn-primary" href="{{ url_for('play_entry', entrieID=entry.id) }}">Play</a>
+
+                            <button class="btn btn-success" data-toggle="modal" data-target="#edit{{ loop.index }}"
+                                    contenteditable="false">Edit
+                            </button>
+
+                        </td>
+
+
+                    <div class="modal fade" id="edit{{ loop.index }}" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+             aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true"
+                                                                                                   class="">×   </span><span
+                                            class="sr-only">Close</span>
+
+                                    </button>
+                                    <h4 class="modal-title" id="myModalLabel">{{ entry.title }}</h4>
+
+                                </div>
+
+                            <form action="{{ url_for('save_entry', entrieID=entry.id) }}" method=post>
+                                <div class="modal-body">
+
+                                    <div class="form-group">
+                                        <label for="title">Title</label>
+                                        <input class="form-control" name="title" id="title" value="{{ entry.title }}">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="type">Type</label>
+                                        <select class="form-control" name="type" id="type" value="{{ entry.type }}">
+                                            <option value="url">Url</option>
+                                            <option value="playlist">Playlist</option>
+                                            <option value="album">Album</option>
+                                            <option value="artist">Artist</option>
+                                            <option value="genre">Genre</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="item">Item</label>
+                                        <input class="form-control" name="item" id="item" value="{{ entry.item }}">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="comment">Comment</label>
+                                        <input class="form-control" name="comment" id="comment" value="{{ entry.comment }}">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="tag_id">TagID</label>
+                                        <input class="form-control" name="tag_id" id="tag_id" value="{{ entry.tag_id }}">
+                                    </div>
+
+                                     <div class="form-group">
+                                        <label for="time_offset">Time Offset</label>
+                                        <input class="form-control" name="time_offset" id="time_offset" value="{{ entry.time_offset }}">
+                                    </div>
+
+                                     <div class="form-group">
+                                        <label for="volume">Volume</label>
+                                        <input class="form-control" name="volume" id="volume" value="{{ entry.volume }}">
+                                    </div>
+
+                                     {% if entry.playitems %}
+
+                                          <div class="form-group">
+                                            <label for="playitems">Sonos Items</label>
+                                            <input readonly class="form-control" name="playitems" id="playitems" value="{{ entry.playitems|truncate(25, True)}}">
+                                          </div>
+                                      {% endif %}
+
+
+                                </div>
+                                <div class="modal-footer">
+                                     <a class="btn btn-default" href="{{ url_for('update_cache', entrieID=entry.id) }}">Update Item Cache</a>
+
+                                    {% if session.logged_in %}
+                                        <a class="btn btn-primary" href="{{ url_for('write_entry', entrieID=entry.id) }}">Write to tag</a>
+                                        <a class="btn btn-danger" href="{{ url_for('remove_entry', entrieID=entry.id) }}">Remove</a>
+                                        <button type="submit" class="btn btn-primary">Save</button>
+
+                                    {% endif %}
+
+                                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+
+
+
+
+
+                                </div>
+
+                            </form>
+                            </div>
+                        </div>
+                </div>
+
+                </tr>
+
+
+                {% else %}
+                    <em>Unbelievable. No entries here so far</em>
+                {% endfor %}
+
+
+
+            {%- endif %}
+
+            {% if session.logged_in %}
+                <!--suppress HtmlUnknownTarget, HtmlUnknownTarget, HtmlUnknownTarget, HtmlUnknownTarget, HtmlUnknownTarget -->
+                <form action="{{ url_for('add_entry') }}" method=post class=add-entry>
+                    <dl>
+                        <dt>Title *:
+                        <dd><input type=text size=30 name=title title="">
+                        <dt>Comment *:
+                        <dd><textarea name=comment rows=5 cols=40></textarea>
+                        <dt>tag_id *:
+                        <dd><input type=text size=30 name=tag_id>
+                        <dt>time_offset:
+                        <dd><input type=text size=30 name=time_offset>
+                        <dt>volume:
+                        <dd><input type=text size=30 name=volume>
+                        <dt>item *:
+                        <dd><input type=text size=30 name=item>
+                        <dt>type *:
+                        <dd><select name=type>
+                            <option value="url">Url</option>
+                            <option value="playlist">Playlist</option>
+                            <option value="album">Album</option>
+                            <option value="artist">Artist</option>
+                            <option value="genre">Genre</option>
+                        </select>
+                        <dd><input type=submit value='Add Item'>
+                    </dl>
+                </form>
+            {% endif %}
+
+
+        </div>
+
+
+    </div>
+{%- endblock %}
