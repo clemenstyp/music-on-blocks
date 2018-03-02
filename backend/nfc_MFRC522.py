@@ -5,7 +5,7 @@ import RPi.GPIO as GPIO
 import spi
 import signal
 import time
-from MusicLogging import MusicLogging
+
 
 class MFRC522:
     NRSTPD = 22
@@ -115,9 +115,6 @@ class MFRC522:
         GPIO.output(self.NRSTPD, 1)
         self.MFRC522_Init()
 
-    def stop(self):
-        MusicLogging.Instance().info("stopping reader")
-
     def MFRC522_Reset(self):
         self.Write_MFRC522(self.CommandReg, self.PCD_RESETPHASE)
 
@@ -214,7 +211,6 @@ class MFRC522:
 
         return (status, backData, backLen)
 
-
     def MFRC522_Request(self, reqMode):
         status = None
         backBits = None
@@ -229,7 +225,6 @@ class MFRC522:
             status = self.MI_ERR
 
         return (status, backBits)
-
 
     def MFRC522_Anticoll(self):
         backData = []

@@ -33,7 +33,8 @@ class NFC_READER:
 
     def stopReader(self, type):
         self.readerType = type
-        self.reader.stop()
+        if self.readerType == 'pn532':
+            self.reader.stop()
 
 
     def readNFC(self):
@@ -44,12 +45,12 @@ class NFC_READER:
         elif self.readerType == 'MFRC522':
             # Scan for cards
             # noinspection PyUnusedLocal,PyUnusedLocal
-            (status, TagType) = self.MIFAREReader.MFRC522_Request(self.MIFAREReader.PICC_REQIDL)
+            (status, TagType) = self.reader.MFRC522_Request(self.MIFAREReader.PICC_REQIDL)
             # If a card is found
             # Get the UID of the card
-            (status, uid) = self.MIFAREReader.MFRC522_Anticoll()
+            (status, uid) = self.reader.MFRC522_Anticoll()
             # If we have the UID, continue
-            if status == self.MIFAREReader.MI_OK:
+            if status == self.reader.MI_OK:
                 tagUid = str(uid).encode("hex")  # get the UID of the touched tag
 
                 return self.foundTag(tagUid)

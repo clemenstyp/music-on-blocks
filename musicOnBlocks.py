@@ -47,18 +47,6 @@ nav.register_element('frontend_top', Navbar(
     View('Tags', 'tags'),
     View('Settings', 'settings'),
     View('Debug', 'debug'),
-    # Subgroup(
-    #     'Docs',
-    #     Link('Flask-Bootstrap', 'http://pythonhosted.org/Flask-Bootstrap'),
-    #     Link('Flask-AppConfig', 'https://github.com/mbr/flask-appconfig'),
-    #     Link('Flask-Debug', 'https://github.com/mbr/flask-debug'),
-    #     Separator(),
-    #     Text('Bootstrap'),
-    #     Link('Getting started', 'http://getbootstrap.com/getting-started/'),
-    #     Link('CSS', 'http://getbootstrap.com/css/'),
-    #     Link('Components', 'http://getbootstrap.com/components/'),
-    #     Link('Javascript', 'http://getbootstrap.com/javascript/'),
-    #     Link('Customize', 'http://getbootstrap.com/customize/'), ),
     Text('Current GIT Hash: {}'.format(get_git_revision_short_hash())), ))
 
 # webapp endpoint
@@ -67,7 +55,7 @@ nav.init_app(app)
 
 # Because we're security-conscious developers, we also hard-code disabling
 # the CDN support (this might become a default in later versions):
-app.config['BOOTSTRAP_SERVE_LOCAL'] = False
+app.config['BOOTSTRAP_SERVE_LOCAL'] = True
 
 
 raspberryPi = None
