@@ -26,14 +26,14 @@ class MusicLogging:
 
     log_format = '%(asctime)s.%(msecs)03d [%(name)s.%(funcName)s] %(levelname)s: %(message)s'
     date_format = '%m/%d/%Y %H:%M:%S'
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.INFO)
 
     def __init__(self):
         self.logger = logging.getLogger()
         # Add the log message handler to the logger
         fileHandler = logging.handlers.RotatingFileHandler(filename=self.log_filename, maxBytes=(20 * 1024 * 1024),
                                                            backupCount=50)
-        fileHandler.setLevel(logging.DEBUG)
+        fileHandler.setLevel(logging.INFO)
         fileHandler.setFormatter(logging.Formatter(fmt=self.log_format, datefmt=self.date_format))
         self.logger.addHandler(fileHandler)
 
