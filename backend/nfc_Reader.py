@@ -45,7 +45,7 @@ class NFC_READER:
         elif self.readerType == 'MFRC522':
             # Scan for cards
             # noinspection PyUnusedLocal,PyUnusedLocal
-            (status, TagType) = self.reader.MFRC522_Request(self.MIFAREReader.PICC_REQIDL)
+            (status, TagType) = self.reader.MFRC522_Request(self.reader.PICC_REQIDL)
             # If a card is found
             # Get the UID of the card
             (status, uid) = self.reader.MFRC522_Anticoll()
