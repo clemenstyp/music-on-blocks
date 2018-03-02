@@ -406,6 +406,8 @@ def add_entry():
     if not session.get('logged_in'):
         abort(401)
     db = get_db()
+    cur = db.cursor()
+
     title = request.form['title']
     comment = request.form['comment']
     tag_id = request.form['tag_id']
@@ -413,12 +415,15 @@ def add_entry():
     volume = request.form['volume']
     item = request.form['item']
     itemType = request.form['type']
-    db.execute(
+    cur.execute(
         'INSERT INTO entries (title, comment, tag_id, time_offset, volume, item, type) VALUES (?, ?, ?, ?, ?, ?, ?)',
         [title, comment, tag_id, time_offset, volume, item, itemType])
     db.commit()
+    entrieID = cur.lastrowid
+    cur.close()
+
     flash('New entry was successfully posted')
-    return redirect(url_for('update_all'))
+    return redirect(url_for('update_cache', entrieID=entrieID))
 
 
 @app.route('/save/<entrieID>', methods=['POST'])
@@ -462,7 +467,7 @@ def save_entry(entrieID):
         # noinspection PyTypeChecker
         flash('Updated entrie with id "' + entrieID + '"')
 
-    return redirect(url_for('tags'))
+    return redirect(url_for('update_cache', entrieID=entrieID))
 
 
 @app.route('/remove/<entrieID>')
