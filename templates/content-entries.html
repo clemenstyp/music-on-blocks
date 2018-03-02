@@ -60,6 +60,7 @@
                             <button class="btn btn-success" data-toggle="modal" data-target="#edit{{ loop.index }}"
                                     contenteditable="false">Edit
                             </button>
+                             <a class="btn btn-danger" href="{{ url_for('write_entry', entrieID=entry.id) }}">Write</a>
 
                              {%- endif %}
 
