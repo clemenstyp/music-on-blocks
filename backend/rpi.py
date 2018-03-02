@@ -127,7 +127,6 @@ class RaspberryPi(object):
             self.ledPulse.startPulseLedForSeconds(10)
             # ledPulse.startPulseLed()
 
-        self.reader.startReader(readerType)
 
         MusicLogging.Instance().info("Setting up reader...")
         # Create an object of the class MFRC522
