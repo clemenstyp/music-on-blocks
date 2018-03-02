@@ -200,6 +200,7 @@ def touchCallback(aTag):
     with app.app_context():
         # within this block, current_app points to app.
         #aTag = str(aHexTag).encode("hex")  # get the UID of the touched tag
+        MusicLogging.Instance().info("touchCallback")
         global lastTag
         lastTag = aTag
         touchedTag(aTag)
@@ -209,6 +210,7 @@ def touchCallback(aTag):
 def releaseCallback():
     with app.app_context():
         # within this block, current_app points to app.
+        MusicLogging.Instance().info("releaseCallback")
         global lastTag
         lastTag = None
         mySonosController.saveLastTagTime()
