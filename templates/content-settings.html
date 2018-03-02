@@ -1,0 +1,80 @@
+{# This simple template derives from ``base.html``. See ``base.html`` for
+   more information about template inheritance. #}
+{%- extends "base.html" %}
+
+{# Loads some of the macros included with Flask-Bootstrap. We are using the
+   utils module here to automatically render Flask's flashed messages in a
+   bootstrap friendly manner #}
+{% import "bootstrap/utils.html" as utils %}
+
+
+{# Inside the ``content`` is where you should place most of your own stuff.
+   This will keep scripts at the page end and a navbar you add on later
+   intact. #}
+{% block content %}
+    <div class="container">
+        {%- with messages = get_flashed_messages(with_categories=True) %}
+            {%- if messages %}
+                <div class="row">
+
+                    {{ utils.flashed_messages(messages) }}
+
+                </div>
+            {%- endif %}
+        {%- endwith %}
+
+
+        <div class="jumbotron">
+
+            <h1>Settings</h1>
+
+            {% if session.logged_in %}
+
+
+                {%- if settingsArray %}
+                    <p>
+
+                    <form action="{{ url_for('save_settings') }}" method=post>
+
+                        {% for entry in settingsArray %}
+
+
+                            <div class="form-group">
+                                <label for="{{ entry.id }}">{{ entry.item }}</label>
+                                <input class="form-control" name="{{ entry.id }}" id="{{ entry.id }}" value="{{ entry.value }}">
+                                 <small id="{{ entry.id }}HelpBlock" class="form-text text-muted">{{ entry.comment }}</small>
+                            </div>
+
+                        {% endfor %}
+
+                        <button type="submit" class="btn btn-primary">Save</button>
+
+                    </form>
+
+
+                    </p>
+                {%- endif %}
+
+                <p>
+
+                    <a class="btn btn-danger" href="{{ url_for('logout') }}">Logout</a>
+
+                </p>
+
+
+            {% else %}
+
+                <p>
+
+                    <a class="btn btn-primary" href="{{ url_for('login') }}">Login</a>
+
+                </p>
+
+            {% endif %}
+
+
+        </div>
+
+
+    </div>
+{%- endblock %}

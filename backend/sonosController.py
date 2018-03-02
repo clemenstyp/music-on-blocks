@@ -6,72 +6,50 @@ import os.path
 import time
 from datetime import datetime, timedelta
 
-from soco import SoCo
-from soco.data_structures import *
+import soco
+
 from MusicLogging import MusicLogging
 
+def str2bool(v):
+    return v in ("yes", "true", "t", "1", "Yes", "True", True)
 
 class SonosController(object):
     def __init__(self, dayVol=25, nightVol=15, daytimeRange=None, unjoin=True, clear=True,
                  settingsFolder="settings", restartTime=10):
         if daytimeRange is None:
             daytimeRange = [7, 17]
-        self.dayVol = dayVol
-        self.nightVol = nightVol
-        self.daytimeRange = daytimeRange
-        self.unjoinBool = unjoin
-        self.clear = clear
+        self.dayVol = float(dayVol)
+        self.nightVol = float(nightVol)
+        self.daytimeRange = daytimeRange.split('-')
+        self.unjoinBool = str2bool(unjoin)
+        self.clear = str2bool(clear)
         self.settings = settingsFolder
-        self.restartTime = restartTime
+        self.restartTime = float(restartTime)
+        self.speakers = None
         self.sonosDevice = None
         self.lastSavedTag = None
 
-    def startSonos(self, sonos_ip):
-        if sonos_ip == "demo":
-            self.sonosDevice = None
-            MusicLogging.Instance().info("Using Sonos Demo...")
-            return
+    def startSonos(self, speaker):
 
         # Sonos setup
         MusicLogging.Instance().info("Connecting to Sonos...")
-        #device = SoCo.discovery.any_soco()
-        #self.sonosDevice = device.group.coordinator
-        device = SoCo(sonos_ip)
-        self.sonosDevice = device.group.coordinator
-        MusicLogging.Instance().info("Connected to Sonos: " + self.sonosDevice.player_name)
-
-        # Use this section to get the URIs of new songs we want to add
-        info = self.get_current_track_info()
-        MusicLogging.Instance().info("Currently Playing: " + info['title'])
-        MusicLogging.Instance().info("URI: " + info['uri'])
-        MusicLogging.Instance().info("---")
+        self.speakers = soco.discover()
+        self.sonosDevice = soco.discovery.by_name(speaker)
         return True
 
     def stopAll(self):
         MusicLogging.Instance().info("Stopping Sonos")
 
-    # def sonosData(self):
-    #     # save song.tmp
-    #     if os.path.isfile(self.settings + "/" + "1_songs" + ".txt"):
-    #         songsJSON = open(self.settings + "/" + "1_songs" + ".txt")
-    #         songs = json.load(songsJSON)
-    #         songsJSON.close()
-    #         fobj_out = open(self.settings + "/"  + "1_songs_TMP-COPY" + ".txt", "w")
-    #         fobj_out.write(json.dumps(songs, sort_keys=True, indent=4, separators=(',', ': ')))
-    #         fobj_out.close()
-    #     else:
-    #         songs = {}
-    #     return songs
-
     def getCache(self, entry):
         playitems = self.loadPlayList(entry)
-        return to_didl_string(*playitems)
+        return soco.data_structures.to_didl_string(*playitems)
+
 
     def getPlayList(self, entry):
 
         playitems = entry['playitems']
         if playitems and not playitems == '':
-            return from_didl_string(playitems)
+            return soco.data_structures_entry.from_didl_string(playitems)
         else:
             return self.loadPlayList(entry)
 
@@ -104,7 +82,7 @@ class SonosController(object):
 
     @staticmethod
     def getUrlCache(entry):
-        item = DidlResource(uri=entry['item'], protocol_info='*:*:*:*')
+        item = soco.data_structures.DidlResource(uri=entry['item'], protocol_info='*:*:*:*')
         return list([item])
 
     def getMusicLibraryInformationCache(self, searchType, entry, valueType):
@@ -277,7 +255,7 @@ class SonosController(object):
         MusicLogging.Instance().info("  setting Volume to:" + str(newVolume))
         currentHour = time.localtime()[3]
         isNight = 0
-        if currentHour < self.daytimeRange[0] or currentHour > self.daytimeRange[1]:  # is it nighttime?
+        if currentHour < float(self.daytimeRange[0]) or currentHour > float(self.daytimeRange[1]):  # is it nighttime?
             isNight = 1
 
         if isNight:

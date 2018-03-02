@@ -10,3 +10,10 @@ create table entries (
   'type' text not null,
   'playitems' text
 );
+drop table if exists settings;
+create table settings (
+   id integer primary key autoincrement,
+  'item' text not null,
+  'value' text not null,
+  'comment' text
+);

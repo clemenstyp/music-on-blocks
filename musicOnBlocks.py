@@ -106,6 +106,65 @@ def init_db():
             db.cursor().executescript(f.read())
         db.commit()
 
+    set_default_settings()
+
+def set_default_settings():
+    with app.app_context():
+        db = get_db()
+        item = 'SPEAKER'
+        value = 'Schlafzimmer'
+        comment = 'Wie heisst der Raum in dem die Musik abgespielt werden soll'
+        db.execute('INSERT INTO settings (item, value, comment) VALUES (?, ?, ?)', [item, value, comment])
+        db.commit()
+
+        item = 'NFC_READER'
+        value = 'demo'
+        comment = 'MFRC522 ist der Reader von Clemens, pn532 ist der Reader von Johannes, demo ist demo'
+        db.execute('INSERT INTO settings (item, value, comment) VALUES (?, ?, ?)', [item, value, comment])
+        db.commit()
+
+        # NFC_READER = "MFRC522"  # MFRC522 ist der Reader von Clemens
+        # NFC_READER = "pn532"  #   pn532 ist der Reader von Johannes
+        # NFC_READER = "demo"  # pn532 ist der Reader von Johannes
+
+        item = 'DAY_VOL'
+        value = '100'
+        comment = 'max daytime volume, 100 means no volume change'
+        db.execute('INSERT INTO settings (item, value, comment) VALUES (?, ?, ?)', [item, value, comment])
+        db.commit()
+
+        item = 'NIGHT_VOL'
+        value = '20'
+        comment = 'max nighttime volume'
+        db.execute('INSERT INTO settings (item, value, comment) VALUES (?, ?, ?)', [item, value, comment])
+        db.commit()
+
+        item = 'DAYTIME_RANGE'
+        value = '7-17'
+        comment = 'daytime is 7:00a to 5:59p'
+        db.execute('INSERT INTO settings (item, value, comment) VALUES (?, ?, ?)', [item, value, comment])
+        db.commit()
+
+        item = 'UNJOIN'
+        value = 'False'
+        comment = 'True oder False'
+        db.execute('INSERT INTO settings (item, value, comment) VALUES (?, ?, ?)', [item, value, comment])
+        db.commit()
+
+        item = 'RPI_DEMO'
+        value = 'True'
+        comment = 'bei True verbindet ist er nicht auf einem rPi (test auf PC)'
+        db.execute('INSERT INTO settings (item, value, comment) VALUES (?, ?, ?)', [item, value, comment])
+        db.commit()
+
+        item = 'RESTART_TIME'
+        value = '30'
+        comment = 'Restart Time in Seconds'
+        db.execute('INSERT INTO settings (item, value, comment) VALUES (?, ?, ?)', [item, value, comment])
+        db.commit()
+
+
+
 
 @app.cli.command('initdb')
 def initdb_command():
@@ -157,24 +216,28 @@ def releaseCallback():
         return True
 
 
+killSonos = True
+
 def startSonos():
     global raspberryPi
     global mySonosController
-
+    global killSonos
+    killSonos = False
     # posibillity to start a demo controller
-    mySonosController = SonosController(dayVol=app.config['DAY_VOL'], nightVol=app.config['NIGHT_VOL'],
-                                        daytimeRange=app.config['DAYTIME_RANGE'], unjoin=app.config['UNJOIN'],
+    mySonosController = SonosController(dayVol=get_settings('DAY_VOL'), nightVol=get_settings('NIGHT_VOL'),
+                                        daytimeRange=get_settings('DAYTIME_RANGE'), unjoin=get_settings('UNJOIN'),
                                         clear=True,
-                                        restartTime=app.config['RESTART_TIME'])
-    mySonosController.startSonos(app.config['SONOS_IP'])
+                                        restartTime=get_settings('RESTART_TIME'))
+    mySonosController.startSonos(get_settings('SPEAKER'))
 
-    if not app.config['RPI_DEMO']:
+    rpi_demo = get_settings('RPI_DEMO')
+    if rpi_demo != "True":
         from backend.rpi import RaspberryPi
-        raspberryPi = RaspberryPi(app.config['NFC_READER'], pause, play, togglePlayPause, toggleNext, togglePrev,
+        raspberryPi = RaspberryPi(get_settings('NFC_READER'), pause, play, togglePlayPause, toggleNext, togglePrev,
                                   toggleUnjoin, toggleVolUp, toggleVolDown, toggleShuffle, rightRotaryTurn,
                                   leftRotaryTurn, rotaryTouch)
 
-    while True:
+    while True and not killSonos:
         if raspberryPi:
             raspberryPi.readNFC(touchCallback, releaseCallback)
 
@@ -258,11 +321,43 @@ def touchedTag(aTag):
         MusicLogging.Instance().info('no entry found')
 
 
+def get_settings(settings_item):
+    with app.app_context():
+        entry = query_db('select * from settings where item = ?', [settings_item], one=True)
+        if entry is None:
+           return ""
+        else:
+            return entry['value']
+
 # flask web views
+@app.route('/next')
+def next():
+    startOneLedPulse()
+    mySonosController.next()
+    return redirect(url_for('index'))
+
+@app.route('/prev')
+def prev():
+    startOneLedPulse()
+    mySonosController.previous()
+    return redirect(url_for('index'))
+
+@app.route('/lauter')
+def lauter():
+    startOneLedPulse()
+    mySonosController.volumeUp(3)
+    return redirect(url_for('index'))
+
+@app.route('/leiser')
+def leiser():
+    startOneLedPulse()
+    mySonosController.volumeUp(-3)
+    return redirect(url_for('index'))
+
 
 @app.route('/')
 def index():
-    return render_template('content.html', content="Music-On-Blocks")
+    return render_template('content-start.html', headline="Music-On-Blocks")
 
 @app.route('/tags')
 def tags():
@@ -286,6 +381,26 @@ def update_cache(entrieID):
     return redirect(url_for('tags'))
 
 
+@app.route('/updateAll')
+def update_all():
+    entries = query_db('select * from entries order by id desc')
+    result = ""
+    for entry in entries:
+        playitems = mySonosController.getCache(entry)
+        db = get_db()
+        db.execute("UPDATE entries SET playitems = ? WHERE id = ?", [playitems, entry['id']])
+        db.commit()
+        # noinspection PyTypeChecker
+        if result is "":
+            result = entry['title']
+        else:
+            result = result + " - " + entry['title']
+
+    flash('Updated cache for: "' + result + '"')
+    return redirect(url_for('tags'))
+
+
+
 @app.route('/add', methods=['POST'])
 def add_entry():
     if not session.get('logged_in'):
@@ -303,7 +418,7 @@ def add_entry():
         [title, comment, tag_id, time_offset, volume, item, itemType])
     db.commit()
     flash('New entry was successfully posted')
-    return redirect(url_for('tags'))
+    return redirect(url_for('update_all'))
 
 
 @app.route('/save/<entrieID>', methods=['POST'])
@@ -323,10 +438,27 @@ def save_entry(entrieID):
         itemType = request.form['type']
 
         db = get_db()
-        db.execute(
-            'UPDATE entries SET title = ? comment = ? tag_id = ? time_offset = ? volume = ? item = ? type = ? WHERE id = ?',
-            [title, comment, tag_id, time_offset, volume, item, itemType, entrieID])
-        db.commit()
+        if title is not entry['title']:
+            db.execute("UPDATE entries SET title = ? WHERE id = ?", [title, entrieID])
+            db.commit()
+        if comment is not entry['comment']:
+            db.execute("UPDATE entries SET comment = ? WHERE id = ?", [comment, entrieID])
+            db.commit()
+        if tag_id is not entry['tag_id']:
+            db.execute("UPDATE entries SET tag_id = ? WHERE id = ?", [tag_id, entrieID])
+            db.commit()
+        if time_offset is not entry['time_offset']:
+            db.execute("UPDATE entries SET time_offset = ? WHERE id = ?", [time_offset, entrieID])
+            db.commit()
+        if volume is not entry['volume']:
+            db.execute("UPDATE entries SET volume = ? WHERE id = ?", [volume, entrieID])
+            db.commit()
+        if item is not entry['item']:
+            db.execute("UPDATE entries SET item = ? WHERE id = ?", [item, entrieID])
+            db.commit()
+        if itemType is not entry['type']:
+            db.execute("UPDATE entries SET type = ? WHERE id = ?", [itemType, entrieID])
+            db.commit()
         # noinspection PyTypeChecker
         flash('Updated entrie with id "' + entrieID + '"')
 
@@ -411,16 +543,63 @@ def get_file(filename):  # pragma: no cover
 
 @app.route('/settings')
 def settings():
-    return render_template('content.html', content="Settings", buttonTitle="Login", buttonLink=url_for('login'), buttonTitle2="Logout", buttonLink2=url_for('logout'))
+    entries = query_db('select * from settings order by id desc')
+    return render_template('content-settings.html', settingsArray=entries)
+
+
+@app.route('/save_settings', methods=['POST'])
+def save_settings():
+    if not session.get('logged_in'):
+        abort(401)
+
+    db = get_db()
+    form = request.form
+    for key in form.keys():
+        for value in form.getlist(key):
+            db.execute("UPDATE settings SET value = ? WHERE id = ?", [value, key])
+            db.commit()
+
+    global killSonos
+    killSonos = True
+    import time
+    time.sleep(3)
+
+    try:
+        sonosThread = thread.start_new_thread(startSonos, ())
+    except:
+        MusicLogging.Instance().info("Error: unable to start thread")
+    # noinspection PyTypeChecker
+    flash('Updated settings')
+
+    return redirect(url_for('settings'))
+
+
+def readFile(filename):
+    if not os.path.isfile(filename):
+        return ''
+    aFile = open(filename, "r")
+    returnValue = aFile.read()
+    aFile.close()
+    return returnValue
+
+def getLog(filename, numberOfLines = -1):
+    fullLog = str(readFile(filename)).decode('ascii', 'ignore')
+    allLines = fullLog.splitlines()
+    if numberOfLines == -1:
+        selectedLines = allLines[::-1]
+    else:
+        selectedLines = allLines[:((numberOfLines +1) * -1):-1]
+
+    log = '\r\n'.join(selectedLines)
+    return log
+
 
 @app.route('/debug')
 def debug():
-    src = os.path.join(app.root_path, MusicLogging.Instance().filename())
-    try:
-        log = get_file(src)
-        return Response(log, mimetype="text/plain")
-    except Exception as e:
-        return str(e)
+    log_filename = os.path.join(app.root_path, MusicLogging.Instance().filename())
+    content = str(getLog(log_filename, 1000))
+    return render_template('content.html', contentDebug=content, headline="Debug Log")
+
 
 
 @app.route('/logout')
@@ -431,9 +610,10 @@ def logout():
 
 
 try:
-    thread.start_new_thread(startSonos, ())
+    sonosThread = thread.start_new_thread(startSonos, ())
 except:
     MusicLogging.Instance().info("Error: unable to start thread")
+
 
 import signal
 import sys

@@ -29,35 +29,18 @@
             <h1>{{headline}}</h1>
         {%- endif %}
 
-        {%- if content %}
-            <p>{{content}}</p>
-        {%- endif %}
+        <p>
 
-         {%- if contentDebug %}
-            <pre>{{contentDebug}}</pre>
-        {%- endif %}
+            <a class="btn btn-lg btn-default" role="button" href="{{ url_for('prev') }}" >Prev</a>
+            <a class="btn btn-lg btn-default" role="button" href="{{ url_for('next') }}" >Next</a>
+            <a class="btn btn-lg btn-default" role="button" href="{{ url_for('leiser') }}" >Leiser</a>
+            <a class="btn btn-lg btn-default" role="button" href="{{ url_for('lauter') }}" >Lauter</a>
 
-        {%- if contentArray %}
-            {% for contentElement in contentArray %}
-                <p>{{ contentElement}}</p>
-            {% endfor %}
-        {%- endif %}
 
-        {%- if buttonTitle %}
-            {%- if buttonLink %}
-                <p>
-                    <a class="btn btn-lg btn-default" role="button" href="{{ buttonLink }}" >{{ buttonTitle }}</a>
-                </p>
-            {%- endif %}
-        {%- endif %}
 
-        {%- if buttonTitle2 %}
-            {%- if buttonLink2 %}
-                <p>
-                    <a class="btn btn-lg btn-default" role="button" href="{{ buttonLink2 }}" >{{ buttonTitle2 }}</a>
-                </p>
-            {%- endif %}
-        {%- endif %}
+
+        </p>
+
 
 
 
