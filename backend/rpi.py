@@ -146,6 +146,7 @@ class RaspberryPi(object):
         # Get the UID of the card
         (status, uid) = self.reader.MFRC522_Anticoll()
         # If we have the UID, continue
+        tagUid = None
         if status == self.reader.MI_OK:
             tagUid = str(uid).encode("hex")  # get the UID of the touched tag
             tagUid = self.foundTag(tagUid)
