@@ -105,16 +105,6 @@ def set_default_settings():
         db.execute('INSERT INTO settings (item, value, comment) VALUES (?, ?, ?)', [item, value, comment])
         db.commit()
 
-        item = 'NFC_READER'
-        value = 'demo'
-        comment = 'MFRC522 ist der Reader von Clemens, pn532 ist der Reader von Johannes, demo ist demo'
-        db.execute('INSERT INTO settings (item, value, comment) VALUES (?, ?, ?)', [item, value, comment])
-        db.commit()
-
-        # NFC_READER = "MFRC522"  # MFRC522 ist der Reader von Clemens
-        # NFC_READER = "pn532"  #   pn532 ist der Reader von Johannes
-        # NFC_READER = "demo"  # pn532 ist der Reader von Johannes
-
         item = 'DAY_VOL'
         value = '100'
         comment = 'max daytime volume, 100 means no volume change'
@@ -223,7 +213,7 @@ def startSonos():
     rpi_demo = get_settings('RPI_DEMO')
     if rpi_demo != "True":
         from backend.rpi import RaspberryPi
-        raspberryPi = RaspberryPi(get_settings('NFC_READER'), pause, play, togglePlayPause, toggleNext, togglePrev,
+        raspberryPi = RaspberryPi(pause, play, togglePlayPause, toggleNext, togglePrev,
                                   toggleUnjoin, toggleVolUp, toggleVolDown, toggleShuffle, rightRotaryTurn,
                                   leftRotaryTurn, rotaryTouch)
 

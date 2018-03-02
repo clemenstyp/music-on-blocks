@@ -6,11 +6,13 @@ from rotary_class import RotaryEncoder
 
 from MusicLogging import MusicLogging
 
-from backend import nfc_Reader
+from backend import MFRC522
 
 
 class RaspberryPi(object):
     # we are hopefully on an rPi, so init all gpio stuff
+
+    lastTagUid = ''
 
     GPIO.setmode(GPIO.BOARD)
     # GPIO.setwarnings(False)
@@ -70,7 +72,7 @@ class RaspberryPi(object):
         except:
             return
 
-    def __init__(self, readerType, pause, play, togglePlayPause, toggleNext, togglePrev, toggleUnjoin, toggleVolUp,
+    def __init__(self, pause, play, togglePlayPause, toggleNext, togglePrev, toggleUnjoin, toggleVolUp,
                  toggleVolDown, toggleShuffle, rightRotaryTurn, leftRotaryTurn, rotaryTouch):
         self.rightRotaryTurn = rightRotaryTurn
         self.leftRotaryTurn = leftRotaryTurn
@@ -125,17 +127,44 @@ class RaspberryPi(object):
             self.ledPulse.startPulseLedForSeconds(10)
             # ledPulse.startPulseLed()
 
-        self.reader = nfc_Reader.NFC_READER()
         self.reader.startReader(readerType)
 
+        MusicLogging.Instance().info("Setting up reader...")
+        # Create an object of the class MFRC522
+        self.reader = MFRC522.MFRC522()
+
+        # Welcome message
+        MusicLogging.Instance().info("Welcome to the MFRC522 reader")
+
+        self.lastTagUid = 'stop'
+        self.oldStatus = 0
+
     def readNFC(self, touchCallback, releaseCallback):
-        tagUid = self.reader.readNFC()
-        if self.lastTagUid != tagUid:
-            self.lastTagUid = tagUid
-            if tagUid is None:
-                releaseCallback()
-            else:
-                touchCallback(tagUid)
+        # Scan for cards
+        # noinspection PyUnusedLocal,PyUnusedLocal
+        (status, TagType) = self.reader.MFRC522_Request(self.reader.PICC_REQIDL)
+        # If a card is found
+        # Get the UID of the card
+        (status, uid) = self.reader.MFRC522_Anticoll()
+        # If we have the UID, continue
+        if status == self.reader.MI_OK:
+            tagUid = str(uid).encode("hex")  # get the UID of the touched tag
+            tagUid = self.foundTag(tagUid)
+
+
+        if tagUid is None:
+            releaseCallback()
+        else:
+            touchCallback(tagUid)
+
+
+    def foundTag(self, newtag):
+        if self.lastTagUid != newtag:
+            self.lastTagUid = newtag
+            self.logger.info("found Tag: " + newtag)
+            return newtag
+        else:
+            return None
 
 
 
@@ -143,7 +172,6 @@ class RaspberryPi(object):
     # noinspection PyUnusedLocal
     def stopAll(self):
         MusicLogging.Instance().info("Stopping RasPi")
-        self.reader.stopReader()
         GPIO.cleanup()
 
 
