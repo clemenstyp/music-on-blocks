@@ -34,7 +34,10 @@ class SonosController(object):
         # Sonos setup
         MusicLogging.Instance().info("Connecting to Sonos...")
         self.speakers = soco.discover()
-        self.sonosDevice = soco.discovery.by_name(speaker)
+        try:
+            self.sonosDevice = soco.discovery.by_name(speaker)
+        except:
+            self.sonosDevice = self.speakers.pop()
         return True
 
     def stopAll(self):
